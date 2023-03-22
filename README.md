@@ -73,7 +73,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+<!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
 Pairings is a javascript-based FLiCA pairing visualization tool. Initially developed to track seasonal trends, it has grown into a webpage that can allow pilots to better understand the pairings available to them.
 
@@ -155,7 +155,7 @@ Distributed under the GNU GENERAL PUBLIC LICENSE Version 2. See `LICENSE` for mo
 <!-- CONTACT -->
 ## Contact
 
-Project Link: [https://github.com/DaveBC/RPAPairings/](https://github.com/DaveBC/RPAPairings/)
+Project Link: [GitHub](https://github.com/DaveBC/RPAPairings/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -186,14 +186,14 @@ Project Link: [https://github.com/DaveBC/RPAPairings/](https://github.com/DaveBC
 [license-url]: https://github.com/DaveBC/RPAPairings/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/davidbanwellclode
-[product-screenshot]: images/screenshot.png
-[Leaflet](https://img.shields.io/static/v1?style=for-the-badge&message=Leaflet&color=199900&logo=Leaflet&logoColor=FFFFFF&label=)
+<!--[product-screenshot]: images/screenshot.png-->
+[Leaflet]: https://img.shields.io/static/v1?style=for-the-badge&message=Leaflet&color=199900&logo=Leaflet&logoColor=FFFFFF&label=
 [Leaflet-url]: https://leafletjs.com/
 [Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
 [Bootstrap-url]: https://getbootstrap.com/
 [PDF.js-url]: https://mozilla.github.io/pdf.js/
-[PDF.js](https://img.shields.io/static/v1?style=for-the-badge&message=PDF.js&color=orange&logo=Mozilla&logoColor=FFFFFF&label=)
-[Font Awesome](https://img.shields.io/static/v1?style=for-the-badge&message=Font+Awesome&color=528DD7&logo=Font+Awesome&logoColor=FFFFFF&label=)
+[PDF.js]: https://img.shields.io/static/v1?style=for-the-badge&message=PDF.js&color=orange&logo=Mozilla&logoColor=FFFFFF&label=
+[Font Awesome]: https://img.shields.io/static/v1?style=for-the-badge&message=Font+Awesome&color=528DD7&logo=Font+Awesome&logoColor=FFFFFF&label=
 [Font Awesome-url]: https://fontawesome.com/
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
 [JQuery-url]: https://jquery.com 
