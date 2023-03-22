@@ -75,7 +75,11 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`
+Pairings is a javascript-based FLiCA pairing visualization tool. Initially developed to track seasonal trends, it has grown into a webpage that can allow pilots to better understand the pairings available to them.
+
+The project utilizes [PDF.js][PDF.js-url] to extract pairing data from monthly FLiCA pairing PDF files, and [Leaflet][Leaflet-url] to display the flights on a map.
+
+See <a href="#usage">Usage</a> to get started.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -83,7 +87,7 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 
 ### Built With
 
-* [![Leaflet][Leaflet]][leaflet-url]
+* [![Leaflet][Leaflet]][Leaflet-url]
 * [![PDF.js][PDF.js]][PDF.js-url]
 * [![Bootstrap][Bootstrap.com]][Bootstrap-url]
 * [![Font Awesome][Font Awesome]][Font Awesome-url]
@@ -111,11 +115,11 @@ Pairing PDFs can be downloaded from [FLiCA.net](https://flica.net)
 <!-- ROADMAP -->
 ## Roadmap
 
-- [x] Initial Release
+- [ ] Initial Release
 - [ ] Storage Optimization
 - [ ] Mobile Support
 
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/DaveBC/RPAPairings/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -162,6 +166,7 @@ Project Link: [https://github.com/DaveBC/RPAPairings/](https://github.com/DaveBC
 
 * [yigityuce - Leaflet.Control.Custom](https://github.com/yigityuce/Leaflet.Control.Custom)
 * [elfalem - Leaflet.curve](https://github.com/elfalem/Leaflet.curve)
+* [mwgg - Airports](https://github.com/mwgg/Airports)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
