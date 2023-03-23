@@ -723,9 +723,6 @@ function saveToDatabase() {
 
     openRequest.onsuccess = function () {
         let db = openRequest.result;
-        if (!db.objectStoreNames.contains('pairings')) { // if there's no "pairings" store
-            db.createObjectStore('pairings'); // create it
-        }
         // continue working with database using db object
         let transaction = db.transaction('pairings', 'readwrite');
         let store = transaction.objectStore('pairings');
@@ -773,7 +770,7 @@ function clearAllData() {
 
     let clearAllDataButton = document.getElementById("clearAllDataButton");
 
-    let alert = '<div class="alert alert-success alert-dismissible fade show center-block me-auto ms-auto" role="alert" id="clearDataAlert">' +
+    let alert = '<div class="alert alert-success alert-dismissible fade show center-block me-auto ms-auto m-3" role="alert" id="clearDataAlert">' +
         'All data successfully cleared!' +
         '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
         '</div>';
@@ -796,6 +793,10 @@ function clearAllData() {
             toggleLoadingScreen();
             clearAllDataButton.innerHTML = 'Clear All Data';
             document.getElementById("alertPlaceholder").innerHTML = alert;
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert('#clearDataAlert');
+                bsAlert.close();
+            }, "3000");
             allPairingsJSON = [];
             pairingsJSON = [];
             document.getElementById("uploadInput").value = null;
