@@ -103,37 +103,43 @@ Pairings does not host any data, as it is considered confidential, and so it mus
 Pairing PDFs can be downloaded from [FLiCA.net](https://flica.net)
 
 ### Uploading Data
+(TODO)
 
 ### Filtering Data
 
-[![Filter Bar Screenshot][filter-bar-screenshot]](https://davebc.github.io/pairings)
+<img align="right" height="480px" src="/assets/images/screenshots/filter_expand.png">
 
 Use the side menu for quick and simple filtering. Filter by codeshare, base, and day of the week.
 Double click will select/deselect all other options.
 
-[![Months Pagination Screenshot][months-screenshot]](https://davebc.github.io/pairings)
-
 Use the bottom tab to quickly switch between months. Filters will be maintained between month selections.
 
+[![Months Pagination Screenshot][months-screenshot]](https://davebc.github.io/pairings)
+
 ### Advanced Filtering
+Advanced options can be found under the filter menu. Some options can be applied to filter out legs, rather than entire pairings. For example, selecting "Days of The Week (Legs Only)" will show all flights that occur on the selected days, regardless of when the parent pairing begins.
 
-[![Filter Menu Screenshot][filter-menu-screenshot]](https://davebc.github.io/pairings)
-
-Advanced options can be found under the filter menu.
+<p align="center">
+  <img height="480px" src="/assets/images/screenshots/filter_menu.jpg">
+</p>
 
 ### Viewing Stats
 
-[![Stats Screenshot][stats-screenshot]](https://davebc.github.io/pairings)
-[![Distribution Screenshot][distribution-screenshot]](https://davebc.github.io/pairings)
+Stats can be viewed by clicking the stats button the right side menu, or by clicking the tab at the bottom of the page. Tooltips are available when hovering over elements to provide some extra information.
 
-Stats can be viewed by clicking the stats button the right side menu, or by clicking the tab at the bottom of the page.
+<p align="center">
+  <img src="/assets/images/screenshots/stats.jpg">
+  <img src="/assets/images/screenshots/distributions.jpg">
+</p>
 
 ### Viewing Data
 
-[![Legs Screenshot][leg-screenshot]](https://davebc.github.io/pairings)
-[![Data Screenshot][data-screenshot]](https://davebc.github.io/pairings)
-
 Pairing information can be viewed by clicking on a pairing link. Pairing links are found on legs, or listed in the stats section.
+
+<p align="center">
+  <img src="/assets/images/screenshots/legs.jpg">
+  <img src="/assets/images/screenshots/pairing.jpg">
+</p>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
