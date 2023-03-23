@@ -200,7 +200,7 @@ let year = 2022;
  * @constant {L.icon}
  */
 const purpleIcon = L.icon({
-    iconUrl: '/assets/images/PurpleCircle.png',
+    iconUrl: '/pairings/assets/images/PurpleCircle.png',
 
     iconSize: [10, 10], // size of the icon
     iconAnchor: [5, 5], // point of the icon which will correspond to marker's location
@@ -211,7 +211,7 @@ const purpleIcon = L.icon({
  * @constant {L.icon}
  */
 const rpaIcon = L.icon({
-    iconUrl: '/assets/images/RPAPin_small.png',
+    iconUrl: '/pairings/assets/images/RPAPin_small.png',
     iconSize: [25, 35],
     iconAnchor: [12, 35]
 });
@@ -281,7 +281,7 @@ function main() {
     $('[data-bs-tooltip="tooltip"]').tooltip();
 
     // Airports path.
-    let airports = "/assets/js/airports_rpa.json";
+    let airports = "/pairings/assets/js/airports_rpa.json";
 
     // Clear active pairings.
     pairingsJSON = [];
@@ -2270,13 +2270,13 @@ L.control.custom({
         '<div id="collapseCodeshares" class="collapse" data-bs-parent="#accordionFilter">' +
         '<div class="btn-group-vertical">' +
         '<button data-filter="codeshare_AA" type="button" class="btn btn-secondary active" id="codeshare_aa_btn" title="American Airlines" aria-pressed="true" autocomplete="off">' +
-        '<img data-filter="codeshare_AA" src="/assets/images/logo_aa.png">' +
+        '<img data-filter="codeshare_AA" src="/pairings/assets/images/logo_aa.png">' +
         '</button>' +
         '<button data-filter="codeshare_DL" type="button" class="btn btn-secondary active" id="codeshare_dl_btn" title="Delta Air Lines" aria-pressed="true" autocomplete="off">' +
-        '<img data-filter="codeshare_DL" src="/assets/images/logo_dl.png">' +
+        '<img data-filter="codeshare_DL" src="/pairings/assets/images/logo_dl.png">' +
         '</button>' +
         '<button data-filter="codeshare_UA" type="button" class="btn btn-secondary active" id="codeshare_ua_btn" title="United Airlines" aria-pressed="true" autocomplete="off">' +
-        '<img data-filter="codeshare_UA" src="/assets/images/logo_ua.png">' +
+        '<img data-filter="codeshare_UA" src="/pairings/assets/images/logo_ua.png">' +
         '</button>' +
         '</div>' +
         '</div>' +
