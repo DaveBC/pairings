@@ -1,0 +1,4 @@
+// Source: https://github.com/mwgg/Airports["0-9A-Za-z\s\\/]+,){5}[\s]+"coun
+// North America / Central America
+// ("[A-Z0-9]+": \{\n){1}([\s]+["a-z]+:\s["0-9A-Za-z'\(\)\.\-\s\\/]+,){9}[\s]+("tz":[\s]+"America)(.+)([\n][\s]+\},)
+// ("[A-Z0-9]+": \{\n){1}([\s]+["a-z]+:\s["0-9A-Za-z'\(\)\.\-\s\\/]+,){1}[\s]+("iata":[\s]+"",)(\s)+["a-zA-Z0-9\\/\(\):\s,.\-_'&]*\},
