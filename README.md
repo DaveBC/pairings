@@ -30,7 +30,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/DaveBC/RPAPairings">
+  <a href="https://github.com/DaveBC/pairings">
     <img src="assets/images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -39,11 +39,11 @@
   <p align="center">
     A pairing visualization tool.
     <br />
-    <a href="https://pairings.js.org">Live Site</a>
+    <a href="https://davebc.github.io/pairings/">Live Site</a>
     ·
-    <a href="https://github.com/DaveBC/RPAPairings/issues">Report Bug</a>
+    <a href="https://github.com/DaveBC/pairings/issues">Report Bug</a>
     ·
-    <a href="https://github.com/DaveBC/RPAPairings/issues">Request Feature</a>
+    <a href="https://github.com/DaveBC/pairings/issues">Request Feature</a>
   </p>
 </div>
 
@@ -119,7 +119,7 @@ Pairing PDFs can be downloaded from [FLiCA.net](https://flica.net)
 - [ ] Storage Optimization
 - [ ] Mobile Support
 
-See the [open issues](https://github.com/DaveBC/RPAPairings/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/DaveBC/pairings/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -155,7 +155,7 @@ Distributed under the GNU GENERAL PUBLIC LICENSE Version 2. See `LICENSE` for mo
 <!-- CONTACT -->
 ## Contact
 
-Project Link: [GitHub](https://github.com/DaveBC/RPAPairings/)
+Project Link: [GitHub](https://github.com/DaveBC/pairings/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -174,16 +174,16 @@ Project Link: [GitHub](https://github.com/DaveBC/RPAPairings/)
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/DaveBC/RPAPairings.svg?style=for-the-badge
-[contributors-url]: https://github.com/DaveBC/RPAPairings/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/DaveBC/RPAPairings.svg?style=for-the-badge
-[forks-url]: https://github.com/DaveBC/RPAPairings/network/members
-[stars-shield]: https://img.shields.io/github/stars/DaveBC/RPAPairings.svg?style=for-the-badge
-[stars-url]: https://github.com/DaveBC/RPAPairings/stargazers
-[issues-shield]: https://img.shields.io/github/issues/DaveBC/RPAPairings.svg?style=for-the-badge
-[issues-url]: https://github.com/DaveBC/RPAPairings/issues
-[license-shield]: https://img.shields.io/github/license/DaveBC/RPAPairings.svg?style=for-the-badge
-[license-url]: https://github.com/DaveBC/RPAPairings/blob/master/LICENSE.txt
+[contributors-shield]: https://img.shields.io/github/contributors/DaveBC/pairings.svg?style=for-the-badge
+[contributors-url]: https://github.com/DaveBC/pairings/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/DaveBC/pairings.svg?style=for-the-badge
+[forks-url]: https://github.com/DaveBC/pairings/network/members
+[stars-shield]: https://img.shields.io/github/stars/DaveBC/pairings.svg?style=for-the-badge
+[stars-url]: https://github.com/DaveBC/pairings/stargazers
+[issues-shield]: https://img.shields.io/github/issues/DaveBC/pairings.svg?style=for-the-badge
+[issues-url]: https://github.com/DaveBC/pairings/issues
+[license-shield]: https://img.shields.io/github/license/DaveBC/pairings.svg?style=for-the-badge
+[license-url]: https://github.com/DaveBC/pairings/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/davidbanwellclode
 <!--[product-screenshot]: images/screenshot.png-->
