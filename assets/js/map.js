@@ -723,9 +723,7 @@ function saveToDatabase() {
 
     openRequest.onsuccess = function () {
         let db = openRequest.result;
-        if (!db.objectStoreNames.contains('pairings')) { // if there's no "pairings" store
-            db.createObjectStore('pairings'); // create it
-        }
+
         // continue working with database using db object
         let transaction = db.transaction('pairings', 'readwrite');
         let store = transaction.objectStore('pairings');
