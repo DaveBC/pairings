@@ -1,0 +1,301 @@
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+.leaflet-left.leaflet-bottom {
+    left: 50%;
+}
+
+#map { 
+    flex-shrink: 2;
+    flex-basis: 100vh;
+}
+
+div.leaflet-tile-pane {
+    filter: grayscale(100%);
+}
+
+div.accordion div.collapse div.btn-group-vertical > button.btn,
+div.accordion div.collapsing div.btn-group-vertical > button.btn {
+    border-radius: 0 !important;
+}
+
+.btn-group-vertical div {
+    width: 100%;
+}
+
+.btn-group-vertical button.btn-text {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.btn-group-vertical button.btn-text span {
+    font-size: 10pt;
+    line-height: 22px;
+    font-stretch: ultra-condensed;
+}
+
+#codeshare_aa_btn.active::before,
+#codeshare_dl_btn.active::before,
+#codeshare_ua_btn.active::before { 
+    position: absolute;
+    top: -11%;
+    width: 16px;
+    height: 100%;
+    border-bottom: 2px solid #B61F23;
+    content: '';
+}
+#codeshare_dl_btn.active::before { 
+    border-bottom: 2px solid #003366;
+}
+#codeshare_ua_btn.active::before { 
+    border-bottom: 2px solid #4fccf5;
+}
+
+.btn-purple {
+    background-color: #8660cb;
+    color: white;
+    --bs-btn-hover-bg: #6f42c1;
+    --bs-btn-hover-color: white;
+}
+
+.infoButton {
+    color: grey;
+    border-color: grey;
+    background-color: white;
+    padding: 0;
+    width: 100px;
+    line-height: 12px;
+    border-radius: 8px 8px 0 0;
+}
+
+.infoButton:hover {
+    background-color: #f2f2f2;
+    border-color: grey;
+}
+
+div.paginationYears, div.infoButton {
+    transform: translate(-50%, 0%);
+}
+
+.pairing-col {
+    /* flex-grow: 1; */
+    margin-right: 20px;
+}
+
+.pairing-calendar-col, .pairing-leg-col {
+    margin-right: 10px;
+}
+
+.pairing-calendar-col:last-of-type, .pairing-leg-col:last-of-type {
+    margin-right: 0px;
+}
+
+.pairing-calendar-col div {
+    line-height: 15px;
+    text-align: center;
+}
+
+#pairing_legs, #pairing_base, #pairing_start, #pairing_end {
+    font-size: 10pt;
+}
+
+#pairing_legs {
+    margin-top: 30px;
+}
+
+#pairing_daysOfTheMonth {
+    font-size: 10pt;
+    float: right;
+    padding: 0 0 0 10px;
+}
+
+#pairing-leg-deparr {
+    min-width: 70px;
+}
+
+.input-group button.dropdown-toggle {
+    flex: 1 1 auto;
+}
+
+.input-group ul.dropdown-menu li a {
+    text-align: center;
+}
+
+.input-group span {
+    width: 150px;
+}
+
+.scrollable-menu {
+    height: auto;
+    max-height: 200px;
+    overflow-x: hidden;
+}
+
+#pairing_end {
+    margin-bottom: 10px;
+}
+
+.page-link:focus {
+    box-shadow: none !important;
+    border-color: transparent !important;
+}
+
+div#collapseInfo {
+    background-color: #F1F1F1;
+    border-top: 1px solid black;
+    flex-shrink: 0;
+}
+
+.loading {
+    width: 100vw;
+    height: 100vh;
+    /* opacity: 0; */
+    background-color: #000;
+    top: 0;
+    left: 0;
+    z-index: 1150;
+    position: fixed;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    /* visibility: hidden; */
+}
+
+.loadingShow {
+    visibility: visible;
+    opacity: 0.5;
+    transition: visibility 0s 0.2s, opacity 0.2s linear;
+}
+
+.loadingHide {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s 0.2s, opacity 0.2s linear;
+}
+
+.loading .loadingImg img {
+    animation: rotation 20s infinite ease-in-out;
+}
+
+@keyframes rotation {
+    from {
+      transform: rotate(3600deg);
+    }
+    to {
+      transform: rotate(0deg);
+    }
+}
+
+#clearDataAlert {
+    z-index: 1056;
+}
+
+#tripLengthDistr div.progress-bar:hover {
+    opacity: 0.8;
+}
+
+.custom-tooltip-standard {
+    --bs-tooltip-bg: var(--bs-primary);
+}
+
+.custom-tooltip-info {
+    --bs-tooltip-bg: var(--bs-info);
+}
+
+.custom-tooltip-success {
+    --bs-tooltip-bg: var(--bs-success);
+}
+
+.custom-tooltip-warning {
+    --bs-tooltip-bg: var(--bs-warning);
+}
+
+.custom-tooltip-danger {
+    --bs-tooltip-bg: var(--bs-danger);
+}
+
+.list-group-graph li {
+    border: none;
+    padding-top: 0px;
+    padding-bottom: 2px;
+    justify-content: start !important;
+}
+
+.list-group-graph li span {
+    width: 50px;
+    flex-shrink: 0.1;
+    margin-bottom: 2px;
+    margin-right: 10px;
+}
+
+.list-group-graph.progressbars li div.progress {
+    height: 20.4px;
+    margin-bottom: 2px;
+}
+
+.bg-aa {
+    background-color: #B61F23;
+}
+
+.bg-dl {
+    background-color: #003366;
+}
+
+.bg-ua {
+    background-color: #4fccf5;
+}
+
+
+#help-two {
+    bottom: 20%;
+    position: fixed;
+}
+
+
+/* Help Arrow */
+.arrow {
+	position: relative;
+  margin: 0 auto;
+  width: 100px;
+}
+
+.arrow .curve {
+	border: 2px solid white;
+	border-color: transparent transparent transparent white;
+	height: 360px;
+	width: 1200px;
+	border-radius: 230px 0 0 150px;
+}
+
+.arrow .point {
+	position: absolute;
+	left: 40px;
+	top: 315px;
+}
+
+.arrow .point:before, .arrow .point:after {
+	border: 1px solid white;
+	height: 25px;
+	content: "";
+	position: absolute;
+}
+
+.arrow .point:before {
+	top: -11px;
+	left: -11px;
+	transform:rotate(-74deg);
+	-webkit-transform:rotate(-74deg);
+  -moz-transform:rotate(-74deg);
+  -ms-transform: rotate(-74deg);
+}
+
+.arrow .point:after {
+  top: -20px;
+	left: 5px;
+	transform:rotate(12deg);
+	-webkit-transform: rotate(12deg);
+  -moz-transform:rotate(12deg);
+  -ms-transform: rotate(12deg);
+}

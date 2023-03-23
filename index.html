@@ -1,7 +1,805 @@
 <!DOCTYPE html>
 <html>
-<body>
-<h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages.</p>
-</body>
+    <head>
+        <title>Pairings</title>
+        <meta name="description" content="A pairing visualization tool">
+        <meta name="keywords" content="JavaScript, leaflet, pdf.js, pairings, flica">
+        <meta name="author" content="David Banwell-Clode">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta property="og:title" content="Pairings">
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://pairings.js.org/assets/images/thumbnail.jpg">
+        <meta property="og:url" content="https://pairings.js.org">
+        <meta name="twitter:card" content="https://pairings.js.org/assets/images/twitter_card.jpg">
+        <meta property="og:description" content="A pairing visualization tool.">
+        <meta property="og:site_name" content="Pairings">
+        <meta name="twitter:image:alt" content="A pairing visualization tool.">
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon/favicon-16x16.png">
+        <link rel="manifest" href="/assets/images/favicon/site.webmanifest">
+        <link rel="mask-icon" href="/assets/images/favicon/safari-pinned-tab.svg" color="#5bbad5">
+        <link rel="shortcut icon" href="/assets/images/favicon/favicon.ico">
+        <meta name="msapplication-TileColor" content="#2d89ef">
+        <meta name="msapplication-config" content="/assets/images/favicon/browserconfig.xml">
+        <meta name="theme-color" content="#ffffff">
+        <!--[if IE]><link rel="SHORTCUT ICON" href="/assets/images/favicon/favicon.ico"/><![endif]--><!-- Internet Explorer-->
+
+
+        
+        <!-- BOOTSTRAP 5.2.2 compiled and minified CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" 
+        integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+
+        <!-- BOOTSTRAP ICONS 1.10.3 compiled and minified CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.3/font/bootstrap-icons.min.css" 
+        integrity="sha512-YFENbnqHbCRmJt5d+9lHimyEMt8LKSNTMLSaHjvsclnZGICeY/0KYEeiHwD1Ux4Tcao0h60tdcMv+0GljvWyHg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script> -->
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+
+        <!-- Font Awesome CDN -->
+        <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"> -->
+        <link rel="stylesheet"  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+
+        <!-- Default Stylesheet -->
+        <link rel="stylesheet" href="/assets/stylesheets/style.min.css?v=1.0.0" />
+
+        <!-- Leaflet Stylesheet 1.9.2 -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css"
+        integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+        crossorigin=""/>
+
+         <!-- Leaflet 1.9.2 -->
+        <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js"
+        integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg="
+        crossorigin=""></script>
+
+        <!-- Leaflet Control Custom https://github.com/yigityuce/Leaflet.Control.Custom -->
+        <script src="/assets/js/Leaflet.Control.Custom.js"></script>
+        
+        <!-- Leaflet.curve https://github.com/elfalem/Leaflet.curve -->
+        <script src="/assets/js/leaflet.curve.js"></script>
+
+        <!-- pdf.js 2.6.347 (version must match worker in getPDFText() https://cdnjs.com/libraries/pdf.js -->
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script> -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js" integrity="sha512-ml/QKfG3+Yes6TwOzQb7aCNtJF4PUyha6R3w8pSTo/VJSywl7ZreYvvtUso7fKevpsI+pYVVwnu82YO0q3V6eg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+        <script src="/assets/js/pairings.js?v=1.0.0"></script>
+    </head>
+    <body>
+        
+        <div class="d-flex flex-column-reverse align-items-stretch h-100 w-100" style="position: absolute; bottom: 0;">
+            <div class="collapse" id="collapseInfo" style="max-height: 55vh; overflow-y:scroll">
+                <div class="container">
+                    <div class="row">
+                        <div style="overflow-y: auto; overflow-x: hidden; margin:20px 20px 0px 20px;">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Base Distributions</h5>
+                                    <div class="row align-items-start">
+                                        <div class="col" style="max-width: 64px; min-width: 62px;">
+                                            <ul class="list-group list-group-graph">
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_bos_label"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_cmh_label"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_dca_label"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_ewr_label"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_ind_label"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_lga_label"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_ord_label"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_phl_label"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_pit_label"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_sdf_label"></li>
+                                            </ul>
+                                        </div>
+                                        <div class="col">
+                                            <ul class="list-group list-group-graph progressbars">
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_bos"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_cmh"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_dca"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_ewr"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_ind"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_lga"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_ord"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_phl"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_pit"></li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="dist_sdf"></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row justify-content-between">
+                        <div class="col" style="margin: 20px;height: 50vh;">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Stats</h5>
+                                    <div style="overflow-y: auto; height: 40vh;">
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_pairingCount"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_blockHours"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_creditCount"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_flightCount"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_flightDayCount"></li>
+
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" style="height:5px;"><hr></li>
+
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_avgBlockFlight"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_avgCreditFlight"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_avgCreditDay"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_avgLegsDay"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_avgGrnt"></li>
+
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" style="height:5px;"><hr></li>
+
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_totalDH"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_avgDH"></li>
+
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" style="height:5px;"><hr></li>
+
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_distribution1Day"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_distribution2Day"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_distribution3Day"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_distribution4Day"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_distribution5Day"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_distributionAll"></li>
+
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" style="height:5px;"><hr></li>
+
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_airportCount"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_longestFlight"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_shortestFlight"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_mostVisited"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_leastVisited"></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-5" style="margin: 20px;height: 45vh;">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Pairings</h5>
+                                    <div style="overflow-y: auto; height: 40vh;" id="stats_pairingsList"></div>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge">
+                                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="left" title="Copy to clipboard" onclick="copyPairings()" data-bs-trigger="hover" id="stats_pairingsListButton"><i class="fa fa-copy"></i></button>
+                                        <span class="visually-hidden">Copy to clipboard</span>
+                                        </span>                                        
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="map"></div>
+        </div>
+        
+        <!-- Modal Filter -->
+        <div class="modal fade" id="filterModalCenter" tabindex="-1" role="dialog" aria-labelledby="filterModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="filterModalLongTitle">Filters</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Pairing Length</span>
+                        <button id="buttonPairingLength-min" class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Min</button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="1">1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="2">2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="3">3</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="4">4</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="5">5</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="6">6</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="-1">None</a></li>
+                        </ul>
+                        <button id="buttonPairingLength-max" class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Max</button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="1">1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="2">2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="3">3</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="4">4</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="5">5</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="6">6</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="-1">None</a></li>
+                        </ul>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Start Time</span>
+                        <button id="buttonStartTime-min" class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Min</button>
+                        <ul class="dropdown-menu scrollable-menu">
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="0">00:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="1">01:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="2">02:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="3">03:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="4">04:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="5">05:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="6">06:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="7">07:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="8">08:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="9">09:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="10">10:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="11">11:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="12">12:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="13">13:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="14">14:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="15">15:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="16">16:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="17">17:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="18">18:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="19">19:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="20">20:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="21">21:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="22">22:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="23">23:00</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="-1">None</a></li>
+                        </ul>
+                        <button id="buttonStartTime-max" class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Max</button>
+                        <ul class="dropdown-menu dropdown-menu-end scrollable-menu">
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="0">00:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="1">01:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="2">02:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="3">03:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="4">04:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="5">05:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="6">06:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="7">07:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="8">08:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="9">09:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="10">10:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="11">11:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="12">12:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="13">13:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="14">14:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="15">15:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="16">16:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="17">17:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="18">18:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="19">19:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="20">20:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="21">21:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="22">22:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="23">23:00</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="-1">None</a></li>
+                        </ul>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">End Time</span>
+                        <button id="buttonEndTime-min" class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Min</button>
+                        <ul class="dropdown-menu scrollable-menu">
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="0">00:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="1">01:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="2">02:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="3">03:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="4">04:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="5">05:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="6">06:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="7">07:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="8">08:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="9">09:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="10">10:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="11">11:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="12">12:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="13">13:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="14">14:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="15">15:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="16">16:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="17">17:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="18">18:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="19">19:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="20">20:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="21">21:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="22">22:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="23">23:00</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="-1">None</a></li>
+                        </ul>
+                        <button id="buttonEndTime-max" class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Max</button>
+                        <ul class="dropdown-menu dropdown-menu-end scrollable-menu">
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="0">00:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="1">01:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="2">02:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="3">03:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="4">04:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="5">05:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="6">06:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="7">07:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="8">08:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="9">09:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="10">10:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="11">11:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="12">12:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="13">13:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="14">14:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="15">15:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="16">16:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="17">17:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="18">18:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="19">19:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="20">20:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="21">21:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="22">22:00</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="23">23:00</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="-1">None</a></li>
+                        </ul>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Credit</span>
+                        <input type="text" class="form-control input-text-min" placeholder="Min (HH:MM)" id="settings_CreditMin" autocomplete="off">
+                        <input type="text" class="form-control input-text-max" placeholder="Max (HH:MM)" id="settings_CreditMax" autocomplete="off">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" title="Time Away From Base">T.A.F.B</span>
+                        <input type="text" class="form-control input-text-min" placeholder="Min (HH:MM)" id="settings_TafbMin" autocomplete="off">
+                        <input type="text" class="form-control input-text-max" placeholder="Max (HH:MM)" id="settings_TafbMax" autocomplete="off">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" title="Total Block Time">Total Block</span>
+                        <input type="text" class="form-control input-text-min" placeholder="Min (HH:MM)" id="settings_TblkMin" autocomplete="off">
+                        <input type="text" class="form-control input-text-max" placeholder="Max (HH:MM)" id="settings_TblkMax" autocomplete="off">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Legs</span>
+                        <button id="buttonNumberOfLegs-min" class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Min</button>
+                        <ul class="dropdown-menu scrollable-menu">
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="1">1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="2">2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="3">3</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="4">4</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="5">5</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="6">6</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="7">7</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="8">8</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="9">9</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="10">10</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="11">11</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="12">12</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="13">13</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="14">14</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="15">15</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="16">16</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="17">17</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="18">18</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="19">19</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="20">20</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="21">21</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="22">22</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="23">23</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="24">24</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="25">25</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="-1">None</a></li>
+                        </ul>
+                        <button id="buttonNumberOfLegs-max" class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Max</button>
+                        <ul class="dropdown-menu dropdown-menu-end scrollable-menu">
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="1">1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="2">2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="3">3</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="4">4</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="5">5</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="6">6</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="7">7</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="8">8</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="9">9</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="10">10</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="11">11</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="12">12</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="13">13</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="14">14</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="15">15</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="16">16</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="17">17</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="18">18</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="19">19</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="20">20</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="21">21</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="22">22</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="23">23</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="24">24</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="25">25</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="-1">None</a></li>
+                        </ul>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Landings</span>
+                        <button id="buttonNumberOfLandings-min" class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Min</button>
+                        <ul class="dropdown-menu scrollable-menu">
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="1">1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="2">2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="3">3</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="4">4</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="5">5</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="6">6</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="7">7</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="8">8</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="9">9</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="10">10</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="11">11</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="12">12</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="13">13</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="14">14</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="15">15</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="16">16</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="17">17</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="18">18</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="19">19</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="20">20</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="21">21</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="22">22</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="23">23</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="24">24</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="25">25</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="-1">None</a></li>
+                        </ul>
+                        <button id="buttonNumberOfLandings-max" class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Max</button>
+                        <ul class="dropdown-menu dropdown-menu-end scrollable-menu">
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="1">1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="2">2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="3">3</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="4">4</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="5">5</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="6">6</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="7">7</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="8">8</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="9">9</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="10">10</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="11">11</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="12">12</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="13">13</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="14">14</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="15">15</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="16">16</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="17">17</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="18">18</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="19">19</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="20">20</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="21">21</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="22">22</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="23">23</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="24">24</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="25">25</a></li>                            
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="-1">None</a></li>
+                        </ul>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" title="Number of Deadheads">Deadheads</span>
+                        <button id="buttonDeadheads-min" class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Min</button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="1">1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="2">2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="3">3</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="4">4</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="5">5</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="6">6</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="7">7</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="8">8</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="9">9</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="10">10</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="-1">None</a></li>
+                        </ul>
+                        <button id="buttonDeadheads-max" class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Max</button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="1">1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="2">2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="3">3</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="4">4</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="5">5</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="6">6</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="7">7</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="8">8</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="9">9</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="10">10</a></li>                            
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="settingsDropDownClick(this)" value="-1">None</a></li>
+                        </ul>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" title="Deadhead Time">Deadhead Time</span>
+                        <input type="text" class="form-control input-text-min" placeholder="Min (HH:MM)" id="settings_dhMin" autocomplete="off">
+                        <input type="text" class="form-control input-text-max" placeholder="Max (HH:MM)" id="settings_dhMax" autocomplete="off">
+                    </div>
+                    <div class="input-group mb-3 has-validation">
+                        <span class="input-group-text" data-bs-toggle="tooltip" data-bs-placement="left" title="Avoid airport(s)">Avoid Airport(s)</span>
+                        <input type="text" class="form-control input-text-airport" placeholder="IATA (e.g LGA, EWR, BOS)" id="settings_avoidAirports" autocomplete="off">
+                        <div class="input-group-text" data-bs-toggle="tooltip" data-bs-placement="left" title="Apply to individual legs only." data-bs-trigger="hover">
+                            <input type="checkbox" aria-label="Checkbox for applying to legs only." id="settings_avoidAirportsCheckbox" autocomplete="off">
+                        </div>
+                        <div class="invalid-feedback">
+                            Incorrect format. E.g. LGA, EWR, BOS
+                        </div>
+                    </div>
+                    <div class="input-group mb-3 has-validation">
+                        <span class="input-group-text" data-bs-toggle="tooltip" data-bs-placement="left" title="Include airport(s)">Include Airport(s)</span>
+                        <input type="text" class="form-control input-text-airport" placeholder="IATA (e.g LGA, EWR, BOS)" id="settings_includeAirports" autocomplete="off">
+                        <div class="input-group-text" data-bs-toggle="tooltip" data-bs-placement="left" title="Apply to individual legs only." data-bs-trigger="hover">
+                            <input type="checkbox" aria-label="Checkbox for applying to legs only." id="settings_includeAirportsCheckbox" autocomplete="off">
+                        </div>
+                        <div class="invalid-feedback">
+                            Incorrect format. E.g. LGA, EWR, BOS
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text flex-grow-1" data-bs-toggle="tooltip" data-bs-placement="left" title="Days of The Week">Days of The Week (Legs Only)</span>
+                        <div class="input-group-text" data-bs-toggle="tooltip" data-bs-placement="left" title="Apply to individual legs only." data-bs-trigger="hover">
+                            <input type="checkbox" aria-label="Checkbox for applying to legs only." id="settings_daysCheckbox" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger me-auto" onclick="resetSettings()" id="settings_resetButton">Reset</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSettings()">Apply changes</button>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Pairing -->
+        <div class="modal fade" id="pairingModalCenter" tabindex="-1" role="dialog" aria-labelledby="pairingModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="pairingModalLongTitle">Pairing #</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        </button>
+                    </div>
+                    <div class="modal-body overflow-auto">
+                        <div id="pairing_daysOfTheMonth" class="d-flex flex-row" style="font-size: 10pt;">
+                            <div class="pairing-calendar-col" id="pairing-cal-mo">
+                                <div>Mo</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                            </div>
+                            <div class="pairing-calendar-col" id="pairing-cal-tu">
+                                <div>Tu</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                            </div>
+                            <div class="pairing-calendar-col" id="pairing-cal-we">
+                                <div>We</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                            </div>
+                            <div class="pairing-calendar-col" id="pairing-cal-th">
+                                <div>Th</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                            </div>
+                            <div class="pairing-calendar-col" id="pairing-cal-fr">
+                                <div>Fr</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                            </div>
+                            <div class="pairing-calendar-col" id="pairing-cal-sa">
+                                <div>Sa</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                            </div>
+                            <div class="pairing-calendar-col" id="pairing-cal-su">
+                                <div>Su</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                                <div>--</div>
+                            </div>
+                        </div>
+                        <div id="pairing_base"></div>
+                        <div id="pairing_start"></div>
+                        <div id="pairing_end"></div>
+                        <div id="pairing_legs" class="d-flex flex-row">
+                            <div class="pairing-leg-col" id="pairing-leg-day">
+                                <div>DAY</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-dh">
+                                <div>DH</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-fltn">
+                                <div>FLTN</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-deparr">
+                                <div>DPS-ARS</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-depl">
+                                <div>DEPL</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-arrl">
+                                <div>ARRL</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-blkt">
+                                <div>BLKT</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-grnt">
+                                <div>GRNT</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-eqp">
+                                <div>EQP</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-spacer">
+                                <div>&nbsp;</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-tblk">
+                                <div>TBLK</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-tcrd">
+                                <div>TCRD</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-tpay">
+                                <div>TPAY</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-duty">
+                                <div>DUTY</div>
+                            </div>
+                            <div class="pairing-leg-col" id="pairing-leg-layo">
+                                <div>LAYO</div>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-row" style="font-size: 10pt;">
+                            <div id="pairing_tblk" class="pairing-col"></div>
+                            <div id="pairing_deadheads" class="pairing-col"></div>
+                            <div id="pairing_triprig" class="pairing-col"><span>TRIP RIG: 0</span></div>
+                            <div id="pairing_credit" class="pairing-col"></div>
+                            <div id="pairing_tafb" class="pairing-col"></div>
+                            <div id="pairing_ldgs" class="pairing-col"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Upload -->
+        <div class="modal fade" id="uploadModalCenter" tabindex="-1" role="dialog" aria-labelledby="uploadModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadModalLongTitle">Upload Files</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <ul class="list-group list-group-flush" id="uploadList">    
+                        </ul>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input id="uploadInput" type="file" multiple accept=".pdf" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger me-auto" onclick="clearAllData()" id="clearAllDataButton">Clear All Data</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <!-- <label class="input-group-text" for="inputGroupFile02">Upload</label> -->
+                    <button type="button" class="btn btn-primary" onclick="uploadFiles()" id="uploadButton">Upload</button>                 
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Loading -->
+        <div class="loading loadingShow" id="loadingScreen">
+            <div class="loadingImg">
+                <img src="/assets/images/FanBlades.png">
+            </div>
+        </div>
+
+        <!-- Modal Info -->
+        <div class="modal fade" id="infoModalCenter" tabindex="-1" role="dialog" aria-labelledby="infoModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="card">
+                            <div class="card-body">
+                                <img class="mx-auto d-block" style="width:120px;height:120px;" src="/assets/images/logo.png">
+                                <h4 class="modal-title mx-auto" id="infoModalLongTitle">Pairings <a href="#" style="font-size:1rem;"><span class="badge bg-secondary">v1.0.0</span></a></h4>
+                                <p>A pairing visualization tool developed for the Republic Airways Pilot Group.</p>
+                                <p>Developed and maintained by David Banwell-Clode.</p>
+                                <a href="https://www.linkedin.com/in/davidbanwellclode/" type="button" class="btn btn-outline-secondary" target="_blank">
+                                    <i class="bi bi-linkedin"></i> Linkedin
+                                </a>
+                                <a href="https://github.com/DaveBC/RPAPairings/" type="button" class="btn btn-outline-secondary" target="_blank">
+                                    <i class="bi bi-github"></i> Github
+                                </a>
+                            </div>
+                            <div class="card-footer">
+                                <p class="fs-6 fw-light">Copyright © 2022-2023 David Banwell-Clode</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Help -->
+        <div class="modal fade" id="helpModalCenter" tabindex="-1" role="dialog" aria-labelledby="helpModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-fullscreen" role="document">
+                <div class="text-center w-100 h-100">
+                    <div class="row row-cols-3 h-100">
+                        <div class="col">
+                            <div id="help-one" class="">
+                                <h1 class="text-white p-3"><i class="bi bi-1-circle-fill"></i> Download pairing PDFs from flica.net</h1>
+                                <img src="/assets/images/FLiCA-Menu.jpg" class="rounded p-3 d-block mx-auto" alt="flica.net">
+                            </div>
+                        </div>
+                        <div class="col d-flex justify-content-center">
+                            <div>
+                                <h5 class="text-white p-3 fst-italic">(Click anywhere to dismiss this overlay)</h5>
+                            </div>
+                            <div id="help-two">
+                                <h1 class="text-white p-3" style="margin: -40px"><i class="bi bi-2-circle-fill"></i> Upload</h1>
+                                <div class="arrow">
+                                    <div class="curve" style="height: 160px; width: 100px;"></div>
+                                    <div class="point" style="left: 17px; top: 137px;">
+                                        <nav>
+                                            <ul class="pagination p-3">
+                                                <li class="page-item">
+                                                <a type="button" class="page-link">
+                                                    <i class="fa-solid fa-file-pdf" style="color: rgb(0,120,168);" aria-hidden="true"></i>
+                                                </a></li>
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                </div>
+                                <div style="bottom: 0; position: fixed; margin-left: 55px;">
+                                    <h1 class="text-white p-1"><i class="bi bi-arrow-90deg-down"></i> Stats, graphs, and pairings</h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col d-flex justify-content-end">
+                            <div id="help-three" style="margin-right: 50px;">
+                                <h1 class="text-white p-3 text-end"><i class="bi bi-3-circle-fill"></i> Filter</h1>
+                                <p class="text-white p-3 text-end">Tip: Double clicking will deselect/select all other buttons.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertPlaceholder" class="me-auto ms-auto w-25"></div>
+        <script src="/assets/js/map.js?v=1.0.0"></script>
+    </body>
+    <!-- <footer>David Banwell-Clode © 2022</footer> -->
 </html>
