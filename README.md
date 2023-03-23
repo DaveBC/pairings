@@ -97,6 +97,8 @@ See <a href="#usage">Usage</a> to get started.
 <!-- USAGE EXAMPLES -->
 ## Usage
 
+[![Pairings Screenshot][product-screenshot]](https://davebc.github.io/pairings)
+
 Pairings does not host any data, as it is considered confidential, and so it must be provided by the user. Data is then stored locally in the browser.
 Pairing PDFs can be downloaded from [FLiCA.net](https://flica.net)
 
@@ -104,9 +106,34 @@ Pairing PDFs can be downloaded from [FLiCA.net](https://flica.net)
 
 ### Filtering Data
 
+[![Filter Bar Screenshot][filter-bar-screenshot]](https://davebc.github.io/pairings)
+
+Use the side menu for quick and simple filtering. Filter by codeshare, base, and day of the week.
+Double click will select/deselect all other options.
+
+[![Months Pagination Screenshot][months-screenshot]](https://davebc.github.io/pairings)
+
+Use the bottom tab to quickly switch between months. Filters will be maintained between month selections.
+
 ### Advanced Filtering
 
+[![Filter Menu Screenshot][filter-menu-screenshot]](https://davebc.github.io/pairings)
+
+Advanced options can be found under the filter menu.
+
 ### Viewing Stats
+
+[![Stats Screenshot][stats-screenshot]](https://davebc.github.io/pairings)
+[![Distribution Screenshot][distribution-screenshot]](https://davebc.github.io/pairings)
+
+Stats can be viewed by clicking the stats button the right side menu, or by clicking the tab at the bottom of the page.
+
+### Viewing Data
+
+[![Legs Screenshot][leg-screenshot]](https://davebc.github.io/pairings)
+[![Data Screenshot][data-screenshot]](https://davebc.github.io/pairings)
+
+Pairing information can be viewed by clicking on a pairing link. Pairing links are found on legs, or listed in the stats section.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -186,7 +213,14 @@ Project Link: [GitHub](https://github.com/DaveBC/pairings/)
 [license-url]: https://github.com/DaveBC/pairings/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/davidbanwellclode
-<!--[product-screenshot]: images/screenshot.png-->
+[product-screenshot]: images/screenshots/fullscreen.jpg
+[months-screenshot]: images/screenshots/months.jpg
+[stats-screenshot]: images/screenshots/stats.jpg
+[distribution-screenshot]: images/screenshots/distributions.jpg
+[leg-screenshot]: images/screenshots/legs.jpg
+[data-screenshot]: images/screenshots/pairing.jpg
+[filter-menu-screenshot]: images/screenshots/filter_menu.jpg
+[filter-bar-screenshot]: images/screenshots/filter_expand.png
 [Leaflet]: https://img.shields.io/static/v1?style=for-the-badge&message=Leaflet&color=199900&logo=Leaflet&logoColor=FFFFFF&label=
 [Leaflet-url]: https://leafletjs.com/
 [Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
