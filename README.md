@@ -148,8 +148,9 @@ Pairing information can be viewed by clicking on a pairing link. Pairing links a
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Initial Release
+- [x] Initial Release
 - [ ] Storage Optimization
+- [ ] FLiCA Integration
 - [ ] Mobile Support
 
 See the [open issues](https://github.com/DaveBC/pairings/issues) for a full list of proposed features (and known issues).
