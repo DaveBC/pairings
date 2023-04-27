@@ -77,6 +77,8 @@
  * @property {Boolean} avoidAirportsLegs
  * @property {[String[]]} includeAirports
  * @property {Boolean} includeAirportsLegs
+ * @property {Boolean} overnights
+ * @property {Number[]} layoverTime
  */
 
 //  =======================================================================================
@@ -105,7 +107,9 @@ let filter = {
     avoidAirports: [""],
     avoidAirportsLegs: false,
     includeAirports: [""],
-    includeAirportsLegs: false
+    includeAirportsLegs: false,
+    overnights: false,
+    layoverTime: [-1, -1],
 };
 
 /**
@@ -114,7 +118,7 @@ let filter = {
 */
 let osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
-    attribution: '© OpenStreetMap'
+    attribution: '&copy OpenStreetMap'
 });
 
 /**
@@ -207,6 +211,17 @@ const purpleIcon = L.icon({
 });
 
 /**
+ * Destination marker/icon.
+ * @constant {L.icon}
+ */
+const tealIcon = L.icon({
+    iconUrl: '/assets/images/TealCircle.png',
+
+    iconSize: [10, 10], // size of the icon
+    iconAnchor: [5, 5], // point of the icon which will correspond to marker's location
+});
+
+/**
  * Republic Airways Base marker/icon.
  * @constant {L.icon}
  */
@@ -253,9 +268,25 @@ let routes = L.layerGroup();
 /**
  * Array of destination airports in IATA format.
  * Used to help place destination markers.
- * @type {String}
+ * @type {String[]}
  */
-let routeDestinations = [];
+// let routeDestinations = [];
+
+/**
+ * Map of destination airports in IATA format.
+ * Used to help place destination markers.
+ * AIRPORT -> [PAIRINGS]
+ * @type {Map<String,String[]>}
+ */
+let routeDestinations = new Map();
+
+/**
+ * Map of overnight airports in IATA format, mapped to pairings.
+ * Used to help place overnight markers.
+ * @type {Map<String,String[]>}
+ */
+let overnightAirports = new Map();
+
 
 /**
  * Layer group of destination markers.
@@ -350,7 +381,8 @@ async function buildLegs() {
     // Clear Map.
     routes.clearLayers();
     destinationMarkerGroup.clearLayers();
-    routeDestinations = [];
+    routeDestinations.clear();
+    overnightAirports.clear();
 
     getPairings()
         .then((pairings) => { displayStats(pairings); return getLegs(pairings) })
@@ -542,9 +574,23 @@ function getPairings() {
             else if (filter.deadheadTime[0] != -1) {
                 if (parseInt(pair.dh) < filter.deadheadTime[0]) return;
             }
-            else if (filter.deadheads[1] != -1) {
+            else if (filter.deadheadTime[1] != -1) {
                 if (parseInt(pair.dh) > filter.deadheadTime[1]) return;
             }
+
+            // Layover time
+            if (filter.layoverTime[0] != -1 && filter.layoverTime[1] != -1) {
+                if (pair.length < 2) return;
+                if (pair.legs.some(leg => leg.layo != "" && (parseInt(leg.layo) < filter.layoverTime[0] || parseInt(leg.layo) > filter.layoverTime[1]))) return;
+            }
+            else if (filter.layoverTime[0] != -1) {
+                if (pair.length < 2) return;
+                else if (pair.legs.some(leg => leg.layo != "" && parseInt(leg.layo) < filter.layoverTime[0])) return;
+            }
+            else if (filter.layoverTime[1] != -1) {
+                if (pair.legs.some(leg => leg.layo != "" && parseInt(leg.layo) > filter.layoverTime[1])) return;
+            }
+
 
             // Filter by leg.
             if (filter.avoidAirportsLegs || filter.includeAirportsLegs || filter.daysOfTheWeekLegs) {
@@ -623,6 +669,17 @@ function getLegs(pairings) {
                 } else {
                     legList.set(legStr, { pairings: [pair.id], codeshares: [pair.codeshare] });
                 }
+
+                // Overnights
+                if (leg.layo != "") {
+                    if (!overnightAirports.has(leg.destination)) {
+                        overnightAirports.set(leg.destination,[pair.id]);
+                    }
+                    else {
+                        overnightAirports.get(leg.destination).push(pair.id);
+                    }
+                }
+
             });
         });
         resolve(legList);
@@ -706,7 +763,7 @@ function loadFromDatabase() {
  * @return {undefined}
  */
 function saveToDatabase() {
-    let openRequest = indexedDB.open('RPAPairings', 1);
+    const openRequest = indexedDB.open('RPAPairings', 1);
 
     openRequest.onupgradeneeded = function () {
         // triggers if the client had no database
@@ -723,6 +780,12 @@ function saveToDatabase() {
 
     openRequest.onsuccess = function () {
         let db = openRequest.result;
+
+        if (!db.objectStoreNames.contains('pairings')) { // if there's no "pairings" store
+            // force onupgradeneeded?
+            // Create store
+            console.log("On success without store.");
+        }
 
         // continue working with database using db object
         let transaction = db.transaction('pairings', 'readwrite');
@@ -849,7 +912,8 @@ function curvedPath(latlng1, latlng2, options) {
 
 /**
  * Return array of curves from the array of legs.
- * @param {Leg[]} legs - Array of legs.
+ * Map of "ORIG-DEST -> {pairings: [Pairinglist], codeshares: ['ua','aa','dl']}"
+ * @param {Map<String, Object>} legs - Map of legs.
  * @return {Promise<L.curve[]>} Promise to an array of L.curve objects.
  */
 function getCurves(legs) {
@@ -861,10 +925,11 @@ function getCurves(legs) {
             let latlng2 = getAirportLatLon(legKey.split("-")[1]);
 
             // Add to destination array.
-            if (!routeDestinations.includes(legKey.split("-")[1])) {
+            if (!routeDestinations.has(legKey.split("-")[1])) {
                 // Ignore base airports.
                 if (!basesIATA.includes(legKey.split("-")[1])) {
-                    routeDestinations.push(legKey.split("-")[1]);
+                    // routeDestinations.push(legKey.split("-")[1]);
+                    routeDestinations.set(legKey.split("-")[1], legPairing.pairings)
                 }
             }
 
@@ -925,30 +990,31 @@ function buildRoutesGroupLayer(lineArr) {
 /**
  * Get airport latitude and longitude coordinates.
  * @param {String} airportIATA Airport identifier in IATA format.
- * @return {Promise<Array<Number, Number>>} A promise to an array containing lat and lon coordinates.
+ * @return {Array<Number, Number>} An array containing lat and lon coordinates.
  */
 function getAirportLatLon(airportIATA) {
-    return new Promise(function (resolve, reject) {
-        Object.keys(airportJSON).forEach(function (key) {
-            if (airportJSON[key].iata === airportIATA) {
-                resolve([airportJSON[key].lat, airportJSON[key].lon]);
-            }
-        });
-        reject(new Error("IATA Code '" + airportIATA + "' not found."));
-    });
+    for (const key of Object.keys(airportJSON)) {
+        if (airportJSON[key].iata === airportIATA) {
+            return [airportJSON[key].lat, airportJSON[key].lon];
+        }
+    }
 }
 
 /**
  * Gets the latitude and longitude coordinates for destination markers.
  * Uses the global variable, routeDestinations, as input.
- * @returns {Promise<Number[]>} Promise to an array of coordinates.
+//  * @returns {Promise<Number[]>} Promise to an array of coordinates.
+ * @returns {Promise<Map<String,Number[]>>} Promise to an array of coordinates.
  */
-function getMarkerLatLons() {
-    destinationLatLons = [];
-    routeDestinations.forEach(function (destination) {
-        destinationLatLons.push(getAirportLatLon(destination));
+ async function getMarkerLatLons() {
+    destinationLatLons = new Map();
+    
+    return new Promise(function(resolve) {
+        routeDestinations.forEach(function (pairs, destination) {
+            destinationLatLons.set(destination, getAirportLatLon(destination));
+        });
+        resolve(destinationLatLons);
     });
-    return Promise.all(destinationLatLons);
 }
 
 /**
@@ -958,8 +1024,18 @@ function getMarkerLatLons() {
  */
 function getMarkerLayers(destinationLatLons) {
     destinationMarkers = [];
-    destinationLatLons.forEach(function (destination, i) {
-        destinationMarkers.push(L.marker(destination, { icon: purpleIcon }).bindPopup(routeDestinations[i]));
+    destinationLatLons.forEach(function (latlon, destination) {
+        if (filter.overnights && overnightAirports.has(destination)) {
+            destinationMarkers.push(L.marker(latlon, { icon: tealIcon }).bindPopup('<b>' + destination + '</b> (Overnights)<br>' +
+                (overnightAirports.get(destination).map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ")
+            ));
+        }
+        else {
+            // destinationMarkers.push(L.marker(destination, { icon: purpleIcon }).bindPopup(routeDestinations[i]));
+            destinationMarkers.push(L.marker(latlon, { icon: purpleIcon }).bindPopup('<b>' + destination + '</b><br>' +
+                (routeDestinations.get(destination).map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ")
+            ));
+        }
     });
     return Promise.all(destinationMarkers);
 }
@@ -1067,6 +1143,16 @@ function singleClickAction(data) {
                     console.log("Unable to remove. Does not exist in filter.");
                     console.log(data);
                 }
+            }
+        }
+        else if (data.target.getAttribute("data-filter").includes("overnights")) {
+            if ((data.target.tagName == "I" && data.target.parentElement.classList.contains("active")) || (data.target.classList.contains("active"))) {
+                // Add to filter, if not already there.
+                filter.overnights = true;
+            }
+            else {
+                // Remove from filter.
+                filter.overnights = false;
             }
         }
 
@@ -1177,6 +1263,8 @@ function displayStats(pairings) {
     let airportVisit = new Map(); // Airport -> count
     let reducedMin = 0; // Number of times the least visited airport was visited.
     let reducedMax = 0; // Number of times the most visited airport was visited.
+    let layoverTime = [];
+    let layoverAvg = 0;
 
     let dayDistribution = [0, 0, 0, 0, 0]; // 1-5.
 
@@ -1218,6 +1306,9 @@ function displayStats(pairings) {
             // Ground time.
             groundCount += timeToHours(leg.grnt);
 
+            // Layover time
+            if (leg.layo != "") layoverTime.push(parseInt(leg.layo));
+
             // Airport visit count.
             if (airportVisit.has(leg.destination)) {
                 airportVisit.set(leg.destination, airportVisit.get(leg.destination) + 1 * pair.days.length);
@@ -1253,6 +1344,7 @@ function displayStats(pairings) {
         reducedMax = [...airportVisit.entries()].reduce((a, e) => e[1] > a[1] ? e : a)[1]; // Most number of visits.
         leastVisited = Array.from([...airportVisit.entries()].filter(([k, v]) => v == reducedMin), ([k, v]) => k); // Airports that have been visited min times.
         mostVisited = Array.from([...airportVisit.entries()].filter(([k, v]) => v == reducedMax), ([k, v]) => k); // Airports that have been visited max times.
+        layoverAvg = layoverTime.reduce((accumulator, currentVal) => accumulator + currentVal, 0) / layoverTime.length;
     }
 
     let oneDay = pairings.length > 0 ? ((dayDistribution[0] / pairings.length) * 100).toFixed(1) : 0;
@@ -1273,6 +1365,7 @@ function displayStats(pairings) {
     document.getElementById("stats_avgCreditDay").innerHTML = "Average Credit/Day <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average credit time per day'>" + (creditCount / dayCount).toLocaleString("en-US", { maximumFractionDigits: 2 }) + "</span>";
     document.getElementById("stats_avgLegsDay").innerHTML = "Average Legs/Day <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average number of legs per day'>" + (legCount / dayCount).toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
     document.getElementById("stats_avgGrnt").innerHTML = "Average Ground Time/Day <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average ground time per day'>" + (groundCount / dayCount).toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
+    document.getElementById("stats_avgLayo").innerHTML = "Average Layover Time/Pairing <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average layover time per pairing'>" + String(layoverAvg).slice(0,2) + "." + ((parseInt(String(layoverAvg).slice(2))/60)*100).toLocaleString("en-US", { maximumSignificantDigits: 1 }).slice(0,1) + "</span>";
 
     document.getElementById("stats_totalDH").innerHTML = "Total Deadhead <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Total deadhead hours'>" + deadheadCount.toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
     document.getElementById("stats_avgDH").innerHTML = "Average Deadhead/Pairing <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average deadhead hours per pairing'>" + (deadheadCount / pairings.length).toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
@@ -1344,13 +1437,13 @@ function pairingLinkClick(data) {
     if (firstDay == 0) firstDay = 7;
     if (lastDay == 0) lastDay = 7;
 
-    // Set second row of calender.
+    // Set second row of Calendar.
     for (let i = 0; i < firstDay - 1; i++) {
         calendar.children[i].children[1].innerHTML = whiteSpace;
     }
 
     // Calculate how many rows required for each month.
-    let numberOfRows = numCalenderRows(numDays, firstDay);
+    let numberOfRows = numCalendarRows(numDays, firstDay);
     // Set last row of calendar.
     for (let i = 6; i > lastDay - 1; i--) {
         calendar.children[i].children[numberOfRows].innerHTML = whiteSpace;
@@ -1369,10 +1462,10 @@ function pairingLinkClick(data) {
     // Fill in days to calendar.
     pairing.days.forEach(function (day) {
         // column (day of week)
-        let column = gauss(year, month, Number(day));
+        let column = gauss(year, month, parseInt(day));
         column = column == 0 ? 6 : column - 1;
         // row
-        let row = Math.ceil((Number(day) + (firstDay - 1)) / 7);
+        let row = Math.ceil((parseInt(day) + (firstDay - 1)) / 7);
         calendar.children[column].children[row].innerHTML = day;
     });
     // --- Calendar End ---
@@ -1510,7 +1603,7 @@ function isLeapYear(year) {
  * @param {Number} firstDay First day of the month, where sunday = 0.
  * @return {Number} Number of calendar rows.
  */
-function numCalenderRows(numDays, firstDay) {
+function numCalendarRows(numDays, firstDay) {
     let numRows = Math.floor(numDays / 7);
     let rem = numDays % 7;
     if (rem == 0) {
@@ -1641,10 +1734,22 @@ function textFieldMaxMinCorrect(elem) {
 
     // Append missing digits if needed.
     if (elem.target.value.length < 5) {
-        if (elem.target.value.length == 1) elem.target.value += "0:00"
-        if (elem.target.value.length == 2) elem.target.value += ":00"
-        if (elem.target.value.length == 3) elem.target.value += "00"
-        if (elem.target.value.length == 4) elem.target.value += "0"
+        if (elem.target.value.includes(":")) {
+            if(elem.target.value.indexOf(":") < 2) {
+                if (elem.target.value.length == 1) elem.target.value = "00" + elem.target.value + "00";
+                if (elem.target.value.length == 2) elem.target.value = "0" + elem.target.value + "00";
+                if (elem.target.value.length == 3) elem.target.value = "0" + elem.target.value + "0";
+                if (elem.target.value.length == 4) elem.target.value = "0" + elem.target.value;
+            } else {
+                if (elem.target.value.length == 3) elem.target.value += "00";
+                if (elem.target.value.length == 4) elem.target.value += "0";
+            }
+        } else {
+            if (elem.target.value.length == 1) elem.target.value = "0" + elem.target.value + ":00";
+            if (elem.target.value.length == 2) elem.target.value += ":00";
+            if (elem.target.value.length == 3) elem.target.value += "00";
+            if (elem.target.value.length == 4) elem.target.value += "0";
+        }
     }
 
     // Remove : from string.
@@ -1773,6 +1878,24 @@ function saveSettings() {
         dhTimeMax.classList.remove("is-invalid");
     }
 
+    // Layover Time
+    if (!layoverTimeMin.value.match("^([0-9])([0-9])(:)([0-5])([0-9])|()$")) {
+        invalidFlag = true;
+        layoverTimeMin.classList.add("is-invalid");
+    }
+    else {
+        // Make sure invalid is removed.
+        layoverTimeMin.classList.remove("is-invalid");
+    }
+    if (!layoverTimeMax.value.match("^([0-9])([0-9])(:)([0-5])([0-9])|()$")) {
+        invalidFlag = true;
+        layoverTimeMax.classList.add("is-invalid");
+    }
+    else {
+        // Make sure invalid is removed.
+        layoverTimeMax.classList.remove("is-invalid");
+    }
+
     // Avoid Airports
     if (!avoidAirports.value.match("^([A-Z0-9]{3})*(,( )?[A-Z0-9]{3})*$")) {
         invalidFlag = true;
@@ -1815,6 +1938,8 @@ function saveSettings() {
         filter.deadheads[1] = document.getElementById("buttonDeadheads-max").innerText == "Max" ? -1 : parseInt(document.getElementById("buttonDeadheads-max").innerText);
         filter.deadheadTime[0] = dhTimeMin.value == "" ? -1 : parseInt(dhTimeMin.value.replace(":", ""));
         filter.deadheadTime[1] = dhTimeMax.value == "" ? -1 : parseInt(dhTimeMax.value.replace(":", ""));
+        filter.layoverTime[0] = layoverTimeMin.value == "" ? -1 : parseInt(layoverTimeMin.value.replace(":", ""));
+        filter.layoverTime[1] = layoverTimeMax.value == "" ? -1 : parseInt(layoverTimeMax.value.replace(":", ""));
         filter.avoidAirports = avoidAirports.value.replace(/ /g, "").split(",");
         filter.avoidAirportsLegs = document.getElementById("settings_avoidAirportsCheckbox").checked;
         filter.includeAirports = includeAirports.value.replace(/ /g, "").split(",");
@@ -1868,6 +1993,8 @@ function resetSettings() {
     document.getElementById("buttonDeadheads-max").innerText = "Max";
     dhTimeMin.value = "";
     dhTimeMax.value = "";
+    layoverTimeMin.value = "";
+    layoverTimeMax.value = "";
     avoidAirports.value = "";
     document.getElementById("settings_avoidAirportsCheckbox").checked = false;
     includeAirports.value = "";
@@ -1893,7 +2020,9 @@ function resetSettings() {
         avoidAirports: [""],
         avoidAirportsLegs: false,
         includeAirports: [""],
-        includeAirportsLegs: false
+        includeAirportsLegs: false,
+        overnights: false,
+        layoverTime: [-1, -1]
     };
 
     document.getElementById("settings_resetButton").innerText = "Done!"
@@ -2226,6 +2355,8 @@ const avoidAirports = document.getElementById("settings_avoidAirports");
 const includeAirports = document.getElementById("settings_includeAirports");
 const dhTimeMin = document.getElementById("settings_dhMin");
 const dhTimeMax = document.getElementById("settings_dhMax");
+const layoverTimeMin = document.getElementById("settings_layoverMin");
+const layoverTimeMax = document.getElementById("settings_layoverMax");
 
 /**
  * Settings: Assign auto format functions to each input field. 
@@ -2240,6 +2371,8 @@ avoidAirports.oninput = (e) => { e.target.value = autoFormatIATA(e.target.value)
 includeAirports.oninput = (e) => { e.target.value = autoFormatIATA(e.target.value); };
 dhTimeMin.oninput = (e) => { e.target.value = autoFormatTime(e.target.value); };
 dhTimeMax.oninput = (e) => { e.target.value = autoFormatTime(e.target.value); };
+layoverTimeMin.oninput = (e) => { e.target.value = autoFormatTime(e.target.value); };
+layoverTimeMax.oninput = (e) => { e.target.value = autoFormatTime(e.target.value); };
 
 /**
  * Settings: trigger autocorrect functions on focusout to each input field.
@@ -2254,6 +2387,8 @@ avoidAirports.addEventListener("focusout", autoCorrectIATA);
 includeAirports.addEventListener("focusout", autoCorrectIATA);
 dhTimeMin.addEventListener("focusout", textFieldMaxMinCorrect);
 dhTimeMax.addEventListener("focusout", textFieldMaxMinCorrect);
+layoverTimeMin.addEventListener("focusout", textFieldMaxMinCorrect);
+layoverTimeMax.addEventListener("focusout", textFieldMaxMinCorrect);
 
 /**
  * Filter control panel.
@@ -2345,6 +2480,9 @@ L.control.custom({
         '</div>' +
         '<button type="button" class="btn btn-purple" title="Filters" data-bs-toggle="modal" data-bs-target="#filterModalCenter" data-bs-tooltip="tooltip" data-bs-placement="left" data-bs-trigger="hover">' +
         '<i class="fa fa-filter" aria-hidden="true"></i>' +
+        '</button>' +
+        '<button type="button" id="overnights_btn" class="btn btn-dark" title="Overnights" data-filter="overnights" data-bs-tooltip="tooltip" data-bs-placement="left" data-bs-trigger="hover">' +
+        '<i data-filter="overnights" class="fa fa-bed" aria-hidden="true"></i>' +
         '</button>' +
         '<button type="button" class="btn btn-warning" title="Stats" data-bs-toggle="collapse" data-bs-target="#collapseInfo" aria-expanded="false" aria-controls="collapseInfo" data-bs-tooltip="tooltip" data-bs-placement="left" data-bs-trigger="hover">' +
         '<i class="fa-solid fa-chart-bar"></i>' +

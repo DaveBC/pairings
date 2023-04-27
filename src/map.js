@@ -2349,6 +2349,9 @@ L.control.custom({
         '<button type="button" class="btn btn-purple" title="Filters" data-bs-toggle="modal" data-bs-target="#filterModalCenter" data-bs-tooltip="tooltip" data-bs-placement="left" data-bs-trigger="hover">' +
         '<i class="fa fa-filter" aria-hidden="true"></i>' +
         '</button>' +
+        '<button type="button" class="btn" data-filter="overnights" title="Overnights" data-bs-tooltip="tooltip" data-bs-placement="left" data-bs-trigger="hover">' +
+        '<i class="fa fa-bed" aria-hidden="true"></i>' +
+        '</button>' +
         '<button type="button" class="btn btn-warning" title="Stats" data-bs-toggle="collapse" data-bs-target="#collapseInfo" aria-expanded="false" aria-controls="collapseInfo" data-bs-tooltip="tooltip" data-bs-placement="left" data-bs-trigger="hover">' +
         '<i class="fa-solid fa-chart-bar"></i>' +
         '</button>' +

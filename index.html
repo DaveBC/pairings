@@ -135,6 +135,7 @@
                                             <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_avgCreditDay"></li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_avgLegsDay"></li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_avgGrnt"></li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="stats_avgLayo"></li>
 
                                             <li class="list-group-item d-flex justify-content-between align-items-center" style="height:5px;"><hr></li>
 
@@ -516,6 +517,11 @@
                         <input type="text" class="form-control input-text-min" placeholder="Min (HH:MM)" id="settings_dhMin" autocomplete="off">
                         <input type="text" class="form-control input-text-max" placeholder="Max (HH:MM)" id="settings_dhMax" autocomplete="off">
                     </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" title="Layover Time">Layover Time</span>
+                        <input type="text" class="form-control input-text-min" placeholder="Min (HH:MM)" id="settings_layoverMin" autocomplete="off">
+                        <input type="text" class="form-control input-text-max" placeholder="Max (HH:MM)" id="settings_layoverMax" autocomplete="off">
+                    </div>
                     <div class="input-group mb-3 has-validation">
                         <span class="input-group-text" data-bs-toggle="tooltip" data-bs-placement="left" title="Avoid airport(s)">Avoid Airport(s)</span>
                         <input type="text" class="form-control input-text-airport" placeholder="IATA (e.g LGA, EWR, BOS)" id="settings_avoidAirports" autocomplete="off">
@@ -537,11 +543,17 @@
                         </div>
                     </div>
                     <div class="input-group mb-3">
-                        <span class="input-group-text flex-grow-1" data-bs-toggle="tooltip" data-bs-placement="left" title="Days of The Week">Days of The Week (Legs Only)</span>
+                        <span class="input-group-text flex-grow-1" data-bs-toggle="tooltip" data-bs-placement="left" title="Days of The Week (Legs Only)">Days of The Week (Legs Only)</span>
                         <div class="input-group-text" data-bs-toggle="tooltip" data-bs-placement="left" title="Apply to individual legs only." data-bs-trigger="hover">
                             <input type="checkbox" aria-label="Checkbox for applying to legs only." id="settings_daysCheckbox" autocomplete="off">
                         </div>
                     </div>
+                    <!-- <div class="input-group mb-3">
+                        <span class="input-group-text flex-grow-1" data-bs-toggle="tooltip" data-bs-placement="left" title="Days of The Week (Inclusive)">Days of The Week (Inclusive)</span>
+                        <div class="input-group-text" data-bs-toggle="tooltip" data-bs-placement="left" title="Pairings must fit within the footprint of the days selected." data-bs-trigger="hover">
+                            <input type="checkbox" aria-label="Checkbox for making days of the week inclusive." id="settings_daysInclusiveCheckbox" autocomplete="off">
+                        </div>
+                    </div> -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger me-auto" onclick="resetSettings()" id="settings_resetButton">Reset</button>
@@ -733,7 +745,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <img class="mx-auto d-block" style="width:120px;height:120px;" src="/assets/images/logo.png">
-                                <h4 class="modal-title mx-auto" id="infoModalLongTitle">Pairings <a href="#" style="font-size:1rem;"><span class="badge bg-secondary">v1.0.0</span></a></h4>
+                                <h4 class="modal-title mx-auto" id="infoModalLongTitle">Pairings <a href="https://github.com/DaveBC/pairings/blob/main/CHANGELOG.md" style="font-size:1rem;"><span class="badge bg-secondary">v1.1.0</span></a></h4>
                                 <p>A pairing visualization tool developed for the Republic Airways Pilot Group.</p>
                                 <p>Developed and maintained by David Banwell-Clode.</p>
                                 <a href="https://www.linkedin.com/in/davidbanwellclode/" type="button" class="btn btn-outline-secondary" target="_blank">
@@ -799,7 +811,7 @@
         </div>
 
         <div id="alertPlaceholder" class="me-auto ms-auto w-25"></div>
-        <script src="/assets/js/map.js?v=1.0.1"></script>
+        <script src="/assets/js/map.js?v=1.1.0"></script>
     </body>
     <!-- <footer>David Banwell-Clode © 2022</footer> -->
 </html>
