@@ -38,7 +38,8 @@ div.accordion div.collapsing div.btn-group-vertical > button.btn {
 
 #codeshare_aa_btn.active::before,
 #codeshare_dl_btn.active::before,
-#codeshare_ua_btn.active::before { 
+#codeshare_ua_btn.active::before,
+#overnights_btn.active::before { 
     position: absolute;
     top: -11%;
     width: 16px;
@@ -51,6 +52,11 @@ div.accordion div.collapsing div.btn-group-vertical > button.btn {
 }
 #codeshare_ua_btn.active::before { 
     border-bottom: 2px solid #4fccf5;
+}
+
+#overnights_btn.active::before {
+    border-bottom: 2px solid #4de2c0;
+    width: 20px;
 }
 
 .btn-purple {
