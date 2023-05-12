@@ -2060,6 +2060,8 @@ function uploadFiles() {
                 updatePagination();
                 if (allPairingsJSON.length != 0) {
                     pairingsJSON = allPairingsJSON[0][2];
+                    year = "20" + allPairingsJSON[0][1];
+                    month = monthArray.indexOf(allPairingsJSON[0][0]);
                     saveToDatabase();
                 }
                 buildLegs();
