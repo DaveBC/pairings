@@ -932,6 +932,20 @@ function getCurves(legs) {
                     routeDestinations.set(legKey.split("-")[1], legPairing.pairings)
                 }
             }
+            else {
+                if (!basesIATA.includes(legKey.split("-")[1])) {
+                    // Get current pairings.
+                    let mergedArray = routeDestinations.get(legKey.split("-")[1])
+                    // Add new pairings without duplicating.
+                    for (let i = 0; i < legPairing.pairings.length; i++) {
+                        if (!mergedArray.includes(legPairing.pairings[i])) {
+                            mergedArray.push(legPairing.pairings[i])
+                        }
+                    }
+                    // Sort alphabetically and push new array to map.
+                    routeDestinations.set(legKey.split("-")[1], mergedArray.sort())
+                }
+            }
 
             let airports = [latlng1, latlng2];
 
@@ -1031,10 +1045,10 @@ function getMarkerLayers(destinationLatLons) {
             ));
         }
         else {
-            // destinationMarkers.push(L.marker(destination, { icon: purpleIcon }).bindPopup(routeDestinations[i]));
-            destinationMarkers.push(L.marker(latlon, { icon: purpleIcon }).bindPopup('<b>' + destination + '</b><br>' +
-                (routeDestinations.get(destination).map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ")
-            ));
+            // List pairings
+            destinationMarkers.push(L.marker(latlon, { icon: purpleIcon }).bindPopup('<b>' + destination + '</b><br><div style="max-height: 30vh;overflow-y: auto;">' +
+                (routeDestinations.get(destination).map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") +
+                '</div>'
         }
     });
     return Promise.all(destinationMarkers);
