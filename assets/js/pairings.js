@@ -726,7 +726,7 @@ async function parsePairings(pairArr, codeshare) {
                         leg.eqp = reg[7];
 
                         // Total Block time. Format: (h)hmm.
-                        if (reg[8].search(/^[0-9]{2,4}$/) == -1) {
+                        if (reg[8].search(/^[0-9]{1,4}$/) == -1) {
                             console.log("[AUTOCORRECT] Fixing total block time.");
                             if (reg.length > 9) {
                                 reg[8] = reg[8] + reg.splice(9, 1);
