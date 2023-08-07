@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.2] - 2023-08-07
+
+### Fixed
+
+- Single digit total block time is permissible (i.e. 0).
+
 ## [1.1.1] - 2023-05-11
 
 ### Fixed
