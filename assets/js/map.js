@@ -1049,6 +1049,7 @@ function getMarkerLayers(destinationLatLons) {
             destinationMarkers.push(L.marker(latlon, { icon: purpleIcon }).bindPopup('<b>' + destination + '</b><br><div style="max-height: 30vh;overflow-y: auto;">' +
                 (routeDestinations.get(destination).map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") +
                 '</div>'
+            ));
         }
     });
     return Promise.all(destinationMarkers);
