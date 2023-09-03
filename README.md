@@ -89,6 +89,7 @@ See <a href="#usage">Usage</a> to get started.
 
 * [![Leaflet][Leaflet]][Leaflet-url]
 * [![PDF.js][PDF.js]][PDF.js-url]
+* [![crypto-js][crypto-js]][crypto-js-url]
 * [![Bootstrap][Bootstrap.com]][Bootstrap-url]
 * [![Font Awesome][Font Awesome]][Font Awesome-url]
 
@@ -149,6 +150,7 @@ Pairing information can be viewed by clicking on a pairing link. Pairing links a
 ## Roadmap
 
 - [x] Initial Release
+- [x] PDF-Free Functionality
 - [ ] Storage Optimization
 - [ ] FLiCA Integration
 - [ ] Mobile Support
@@ -234,6 +236,8 @@ Project Link: [GitHub](https://github.com/DaveBC/pairings/)
 [Bootstrap-url]: https://getbootstrap.com/
 [PDF.js-url]: https://mozilla.github.io/pdf.js/
 [PDF.js]: https://img.shields.io/static/v1?style=for-the-badge&message=PDF.js&color=orange&logo=Mozilla&logoColor=FFFFFF&label=
+[crypto-js-url]: https://github.com/brix/crypto-js
+[crypto-js]: https://img.shields.io/static/v1?style=for-the-badge&message=crypto-js&color=yellow&logo=javascript&logoColor=FFFFFF&label=
 [Font Awesome]: https://img.shields.io/static/v1?style=for-the-badge&message=Font+Awesome&color=528DD7&logo=Font+Awesome&logoColor=FFFFFF&label=
 [Font Awesome-url]: https://fontawesome.com/
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white

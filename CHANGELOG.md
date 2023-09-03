@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.4] - 2023-09-04
+
+### Added
+
+- Unlock feature. Automatically load pairing data without having to manually handle PDF files by entering a passphrase.
+
+### Fixed
+
+- Copyright symbol on info modal.
+- Clear all data promise.
+- Hotel name and phone number text overlap.
+
+### Removed
+
+- First load help modal overlay. This can be manually triggered via the help button instead.
+
 ## [1.1.3] - 2023-08-07
 
 ### Fixed
