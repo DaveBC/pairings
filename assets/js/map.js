@@ -303,7 +303,6 @@ window.onload = function () { main() };
 
 /**
  * Generates tooltips, fetches, loads and saves data.
- * Shows the help overlay on first load. Detemined by existance of airports in localstorage.
  * Builds the map and hides loading overlay.
  * @return {undefined} 
  */
@@ -354,7 +353,8 @@ function main() {
         // Doesn't exist.
         // Load airportJSON.
         // Put airportJSON into local storage.
-        $('#helpModalCenter').modal('show');
+
+        // $('#helpModalCenter').modal('show');  // Disabled for now.
         fetch(airports) // Get JSON from file.
             .then((fetched) => {
                 fetched.json() // Get PDF Pairings and build json object.
@@ -694,7 +694,7 @@ function getLegs(pairings) {
 function changeMonthYear(data) {
     // TODO: Add error checking.
 
-    if (data.target.classList.contains("fa-file-pdf")) return;
+    if (data.target.classList.contains("fa-file-pdf") || data.target.classList.contains("fa-key")) return;
     toggleLoadingScreen();
 
     // Get month and year of the clicked element.
@@ -830,7 +830,7 @@ function deleteDatabase() {
  * Reloads map.
  * @return {undefined}
  */
-function clearAllData() {
+async function clearAllData() {
 
     let clearAllDataButton = document.getElementById("clearAllDataButton");
 
@@ -840,8 +840,12 @@ function clearAllData() {
         '</div>';
 
     let pagination = '<li class="page-item">' +
-        '<a id="upload" type="button" class="page-link" title="Other Settings" data-bs-toggle="modal" data-bs-target="#uploadModalCenter">' +
+        '<a id="upload" type="button" class="page-link" title="Upload" data-bs-toggle="modal" data-bs-target="#uploadModalCenter">' +
         '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i>' +
+        '</a></li>' +
+        '<li class="page-item">' +
+        '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#unlockModalCenter">' +
+        '<i class="fa-solid fa-key" aria-hidden="true"></i>' +
         '</a></li>';
 
     // Display loading
@@ -1518,10 +1522,10 @@ function pairingLinkClick(data) {
             document.getElementById("pairing-leg-depl").innerHTML += "<div>" + whiteSpace + "</div>";
             document.getElementById("pairing-leg-arrl").innerHTML += "<div>" + whiteSpace + "</div>";
             document.getElementById("pairing-leg-blkt").innerHTML += "<div>" + whiteSpace + "</div>";
-            document.getElementById("pairing-leg-grnt").innerHTML += "<div style='white-space: nowrap; width: 0px'>" + hotelDetail.phone + "</div>";
+            document.getElementById("pairing-leg-grnt").innerHTML += "<div>" + whiteSpace + "</div>";
             document.getElementById("pairing-leg-eqp").innerHTML += "<div>" + whiteSpace + "</div>";
 
-            document.getElementById("pairing-leg-tblk").innerHTML += "<div>" + whiteSpace + "</div>";
+            document.getElementById("pairing-leg-tblk").innerHTML += "<div style='white-space: nowrap; width: 0px'>" + hotelDetail.phone + "</div>";
             document.getElementById("pairing-leg-tcrd").innerHTML += "<div>" + whiteSpace + "</div>";
             document.getElementById("pairing-leg-tpay").innerHTML += "<div>" + whiteSpace + "</div>";
             document.getElementById("pairing-leg-duty").innerHTML += "<div>" + whiteSpace + "</div>";
@@ -2201,7 +2205,7 @@ function updateFileList(files) {
             '">' +
             files[i].name +
             '<div class="progress">' +
-            '<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-label="Example with label" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">Pending</div>' +
+            '<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-label="Progress Item 1" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">Pending</div>' +
             '</div>' +
             '</li>'
         uploadList.innerHTML += listHTML;
@@ -2221,9 +2225,14 @@ function updatePagination() {
         pagination.innerHTML += '<li class="page-item"><a class="page-link' + active + '" href="#">' + allPairingsJSON[i][0].charAt(0) + allPairingsJSON[i][0].slice(1).toLowerCase() + '-' + allPairingsJSON[i][1] + '</a></li>';
     }
     pagination.innerHTML += '<li class="page-item">' +
-        '<a id="upload" type="button" class="page-link" title="Other Settings" data-bs-toggle="modal" data-bs-target="#uploadModalCenter">' +
+        '<a id="upload" type="button" class="page-link" title="Upload" data-bs-toggle="modal" data-bs-target="#uploadModalCenter">' +
         '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i>' +
         '</a></li>'
+
+    pagination.innerHTML += '<li class="page-item">' +
+    '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#unlockModalCenter">' +
+    '<i class="fa-solid fa-key" aria-hidden="true"></i>' +
+    '</a></li>';
 }
 
 /**
@@ -2574,6 +2583,10 @@ L.control.custom({
         '<a id="upload" type="button" class="page-link" title="Upload" data-bs-toggle="modal" data-bs-target="#uploadModalCenter">' +
         '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i>' +
         '</a></li>' +
+        '<li class="page-item">' +
+        '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#unlockModalCenter">' +
+        '<i class="fa-solid fa-key" aria-hidden="true"></i>' +
+        '</a></li>' +
         ' </ul>' +
         ' </nav>' +
         '</div>',
@@ -2591,7 +2604,7 @@ L.control.custom({
     events:
     {
         click: function (data) {
-            if (data.target.id == "upload") {
+            if (data.target.id == "upload" || data.target.id == "unlock") {
                 // Id clicked.
 
             }
