@@ -104,12 +104,16 @@ if (decrypt(checkvalue,passphrase) == "correct") {
     });
   }
   else {
-      // Handle error.
-      console.log("uh oh...");
-      // TODO: Present error banner.
-      unlockButton.innerHTML = 'Unlock';
-      unlockButton.disabled = false;
-      unlockProgress.hidden = true;
+    let alert = '<div class="alert alert-danger alert-dismissible fade show center-block me-auto ms-auto" role="alert" id="unlockFailAlert">' +
+        'Unable to unlock data (incorrect passphrase)' +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+        '</div>';
+    // Handle error.
+    console.log("uh oh...");
+    unlockButton.innerHTML = 'Unlock';
+    unlockButton.disabled = false;
+    unlockProgress.hidden = true;
+    document.getElementById("alertPlaceholder").innerHTML = alert;
   }
 }
 
