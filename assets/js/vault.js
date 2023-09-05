@@ -41,7 +41,7 @@ function generateCipherText(passphrase) {
 function generateMonthlyCipherText(passphrase, months) {
   var pairings = [];
   for (let i = 0; i < months && i < allPairingsJSON.length; i++) {
-    pairings.push(allPairingsJSON[i][2])
+    pairings.push([allPairingsJSON[i][0], allPairingsJSON[i][1], allPairingsJSON[i][2]])
   }
   return encrypt(JSON.stringify(pairings), passphrase).toString()
 }
