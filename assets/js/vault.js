@@ -33,26 +33,51 @@ function generateCipherText(passphrase) {
 }
 
 /**
+* Generate monthly block of ciphered pairings.
+* @param {String} passphrase Encryption passphrase.
+* @param {Number} months Number of months to cipher.
+* @return {String} Cipher of pairings in JSON string format.
+*/
+function generateMonthlyCipherText(passphrase, months) {
+  var pairings = [];
+  for (let i = 0; i < months && i < allPairingsJSON.length; i++) {
+    pairings.push(allPairingsJSON[i][2])
+  }
+  return encrypt(JSON.stringify(pairings), passphrase).toString()
+}
+
+/**
 * Export ciphered pairings to file.
 * @param {String} passphrase Encryption passphrase.
 * @param {String} filename Filename to be used.
+* @param {Number} months Number of months to cipher.
 * @return {undefined} Blob that can be saved as a file.
 */
-function exportCipher(passphrase, filename) {
-let url = URL.createObjectURL( new Blob( [generateCipherText(passphrase)], {encoding:"UTF-8",type:'text/plain'} ) );
+function exportCipher(passphrase, filename, months) {
 
-// Create pseudo element.
-var element = document.createElement('a');
-element.setAttribute('href', url);
-element.setAttribute('download', filename);
-element.style.display = 'none';
-document.body.appendChild(element);
+  var cipher = ""
 
-// Activate download.
-element.click();
+  if (months === undefined) {
+    cipher = generateCipherText(passphrase);
+  }
+  else {
+    cipher = generateMonthlyCipherText(passphrase, months);
+  }
 
-// Clear psuedo element.
-document.body.removeChild(element);
+  let url = URL.createObjectURL( new Blob( [cipher], {encoding:"UTF-8",type:'text/plain'} ) );
+
+  // Create pseudo element.
+  var element = document.createElement('a');
+  element.setAttribute('href', url);
+  element.setAttribute('download', filename);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  // Activate download.
+  element.click();
+
+  // Clear psuedo element.
+  document.body.removeChild(element);
 }
 
 /**
@@ -60,49 +85,49 @@ document.body.removeChild(element);
 * @return {undefined}
 */
 function unlockData() {
-// Change upload button to inhibit clicks and display spinner.
-let unlockButton = document.getElementById("unlockButton");
-unlockButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
-unlockButton.disabled = true;
+  // Change upload button to inhibit clicks and display spinner.
+  let unlockButton = document.getElementById("unlockButton");
+  unlockButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+  unlockButton.disabled = true;
 
-let unlockProgress = document.getElementById("unlockProgressContainer");
-unlockProgress.hidden = false;
+  let unlockProgress = document.getElementById("unlockProgressContainer");
+  unlockProgress.hidden = false;
 
-let passphrase = document.getElementById("inputPassphrase").value;
-let checkvalue = "U2FsdGVkX18Q/X7D5W5UAcYGtkhTGWq0L83W9J7LKfs="
-if (decrypt(checkvalue,passphrase) == "correct") {
-    // Read from file.
-    readRequest()
-    .then((cipherText) => {
-      // Decrypt.
-      let plain = decrypt(encodeURI(cipherText), passphrase);
+  let passphrase = document.getElementById("inputPassphrase").value;
+  let checkvalue = "U2FsdGVkX1+y5tWGZyJVfKJ8L8xNprK2WQoMvfTYZqU=";
+  if (decrypt(checkvalue,passphrase) == "correct") {
+      // Read from file.
+      readRequest()
+      .then((cipherText) => {
+        // Decrypt.
+        let plain = decrypt(encodeURI(cipherText), passphrase);
 
-      // Convert from String to JSON.
-      // Replace allPairingsJSON.
-      allPairingsJSON = JSON.parse(plain);
-      unlockButton.innerHTML = 'Upload';
-      unlockButton.disabled = false;
-
-      // Reload pagination.
-      updatePagination();
-
-      // Update selected year and month. 
-      // Save to database.
-      if (allPairingsJSON.length != 0) {
-          pairingsJSON = allPairingsJSON[0][2];
-          year = "20" + allPairingsJSON[0][1];
-          month = monthArray.indexOf(allPairingsJSON[0][0]);
-          saveToDatabase();
-      }
-
-      // Build legs.
-      buildLegs()
-        .then(() =>  { $('#unlockModalCenter').modal('hide')
-        unlockButton.innerHTML = 'Unlock';
+        // Convert from String to JSON.
+        // Replace allPairingsJSON.
+        allPairingsJSON = JSON.parse(plain);
+        unlockButton.innerHTML = 'Upload';
         unlockButton.disabled = false;
-        unlockProgress.hidden = true; });
-    });
-  }
+
+        // Reload pagination.
+        updatePagination();
+
+        // Update selected year and month. 
+        // Save to database.
+        if (allPairingsJSON.length != 0) {
+            pairingsJSON = allPairingsJSON[0][2];
+            year = "20" + allPairingsJSON[0][1];
+            month = monthArray.indexOf(allPairingsJSON[0][0]);
+            saveToDatabase();
+        }
+
+        // Build legs.
+        buildLegs()
+          .then(() =>  { $('#unlockModalCenter').modal('hide')
+          unlockButton.innerHTML = 'Unlock';
+          unlockButton.disabled = false;
+          unlockProgress.hidden = true; });
+      });
+    }
   else {
     let alert = '<div class="alert alert-danger alert-dismissible fade show center-block me-auto ms-auto" role="alert" id="unlockFailAlert">' +
         'Unable to unlock data (incorrect passphrase)' +
@@ -136,7 +161,13 @@ function readRequest() {
         };
       req.onerror = reject;
       req.addEventListener("progress", updateProgress);
-      req.open("GET", "/assets/data/data");
+      
+      if(isMobile()) {
+        req.open("GET", "/assets/data/data3");
+      }
+      else {
+        req.open("GET", "/assets/data/data");
+      }
       req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8')
       req.send();
   });
@@ -160,4 +191,33 @@ function updateProgress(event) {
   } else {
     // Unable to compute progress information since the total size is unknown
   }
+}
+
+/**
+* Detect user device type.
+* @return {Boolean} True if using mobile.
+*/
+function isMobile() {
+    // User agent string method
+    let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Screen resolution method
+    if (!isMobile) {
+        let screenWidth = window.screen.width;
+        let screenHeight = window.screen.height;
+        isMobile = (screenWidth < 768 || screenHeight < 768);
+    }
+    
+    // Touch events method
+    if (!isMobile) {
+        isMobile = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
+    }
+    
+    // CSS media queries method
+    if (!isMobile) {
+        let bodyElement = document.getElementsByTagName('body')[0];
+        isMobile = window.getComputedStyle(bodyElement).getPropertyValue('content').indexOf('mobile') !== -1;
+    }
+    
+    return isMobile
 }
