@@ -94,7 +94,7 @@ function unlockData() {
   unlockProgress.hidden = false;
 
   let passphrase = document.getElementById("inputPassphrase").value;
-  let checkvalue = "U2FsdGVkX1+y5tWGZyJVfKJ8L8xNprK2WQoMvfTYZqU=";
+  let checkvalue = "U2FsdGVkX1+9HmtGUS/C3tRnPtk+Qh5Z0Yu15S0cwzk=";
   if (decrypt(checkvalue,passphrase) == "correct") {
       // Read from file.
       readRequest()
