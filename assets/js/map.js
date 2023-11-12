@@ -1284,6 +1284,7 @@ function displayStats(pairings) {
     let reducedMax = 0; // Number of times the most visited airport was visited.
     let layoverTime = [];
     let layoverAvg = 0;
+    let numPairings = 0; // Number of pairings, including pairings that repeat multiple times per month.
 
     let dayDistribution = [0, 0, 0, 0, 0]; // 1-5.
 
@@ -1291,19 +1292,25 @@ function displayStats(pairings) {
     buildBaseDistributions(pairings);
 
     pairings.forEach(function (pair) {
-        flightCount += pair.legs.length * pair.days.length;
-        legCount += pair.legs.length;
+        // Number of times pairing repeats per month.
+        multiplier = pair.days.length;
 
-        dayDistribution[pair.length - 1] += 1;
+        // Count total pairings.
+        numPairings += multiplier;
+
+        flightCount += (pair.legs.length * pair.days.length) * multiplier;
+        legCount += pair.legs.length * multiplier;
+
+        dayDistribution[pair.length - 1] += multiplier;
 
         // Count total block time.
-        blockCount += timeToHours(pair.tblk);
+        blockCount += timeToHours(pair.tblk) * multiplier;
 
         // Count total credit.
-        creditCount += timeToHours(pair.cdt);
+        creditCount += timeToHours(pair.cdt) * multiplier;
 
         // Count total Deadhead
-        deadheadCount += timeToHours(pair.dh);
+        deadheadCount += timeToHours(pair.dh) * multiplier;
 
         let currentDay = "";
 
@@ -1323,19 +1330,23 @@ function displayStats(pairings) {
             }
 
             // Ground time.
-            groundCount += timeToHours(leg.grnt);
+            groundCount += timeToHours(leg.grnt)  * multiplier;
 
             // Layover time
-            if (leg.layo != "") layoverTime.push(parseInt(leg.layo));
+            if (leg.layo != "") {
+                for(let i=0; i < multiplier; i++) {
+                    layoverTime.push(parseInt(leg.layo));
+                }
+            }
 
             // Airport visit count.
             if (airportVisit.has(leg.destination)) {
-                airportVisit.set(leg.destination, airportVisit.get(leg.destination) + 1 * pair.days.length);
+                airportVisit.set(leg.destination, airportVisit.get(leg.destination) + 1 * multiplier);
             }
             else {
                 // ignore bases.
                 if (!basesIATA.includes(leg.destination)) {
-                    airportVisit.set(leg.destination, 1 * pair.days.length);
+                    airportVisit.set(leg.destination, multiplier);
                 }
             }
 
@@ -1366,14 +1377,14 @@ function displayStats(pairings) {
         layoverAvg = layoverTime.reduce((accumulator, currentVal) => accumulator + currentVal, 0) / layoverTime.length;
     }
 
-    let oneDay = pairings.length > 0 ? ((dayDistribution[0] / pairings.length) * 100).toFixed(1) : 0;
-    let twoDay = pairings.length > 0 ? ((dayDistribution[1] / pairings.length) * 100).toFixed(1) : 0;
-    let threeDay = pairings.length > 0 ? ((dayDistribution[2] / pairings.length) * 100).toFixed(1) : 0;
-    let fourDay = pairings.length > 0 ? ((dayDistribution[3] / pairings.length) * 100).toFixed(1) : 0;
-    let fiveDay = pairings.length > 0 ? ((dayDistribution[4] / pairings.length) * 100).toFixed(1) : 0;
+    let oneDay = numPairings > 0 ? ((dayDistribution[0] / numPairings) * 100).toFixed(1) : 0;
+    let twoDay = numPairings > 0 ? ((dayDistribution[1] / numPairings) * 100).toFixed(1) : 0;
+    let threeDay = numPairings > 0 ? ((dayDistribution[2] / numPairings) * 100).toFixed(1) : 0;
+    let fourDay = numPairings > 0 ? ((dayDistribution[3] / numPairings) * 100).toFixed(1) : 0;
+    let fiveDay = numPairings > 0 ? ((dayDistribution[4] / numPairings) * 100).toFixed(1) : 0;
 
 
-    document.getElementById("stats_pairingCount").innerHTML = "Pairings <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Total number of pairings'>" + pairings.length.toLocaleString("en-US") + "</span>";
+    document.getElementById("stats_pairingCount").innerHTML = "Pairings <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Total number of pairings'>" + numPairings.toLocaleString("en-US") + "</span>";
     document.getElementById("stats_blockHours").innerHTML = "Block Hours <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Total block hours'>" + blockCount.toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
     document.getElementById("stats_creditCount").innerHTML = "Credit Hours <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Total credit hours'>" + creditCount.toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
     document.getElementById("stats_flightCount").innerHTML = "Flights <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Total number of flights'>" + flightCount.toLocaleString("en-US") + "</span>";
@@ -1387,7 +1398,7 @@ function displayStats(pairings) {
     document.getElementById("stats_avgLayo").innerHTML = "Average Layover Time/Pairing <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average layover time per pairing'>" + String(layoverAvg).slice(0,2) + "." + ((parseInt(String(layoverAvg).slice(2))/60)*100).toLocaleString("en-US", { maximumSignificantDigits: 1 }).slice(0,1) + "</span>";
 
     document.getElementById("stats_totalDH").innerHTML = "Total Deadhead <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Total deadhead hours'>" + deadheadCount.toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
-    document.getElementById("stats_avgDH").innerHTML = "Average Deadhead/Pairing <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average deadhead hours per pairing'>" + (deadheadCount / pairings.length).toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
+    document.getElementById("stats_avgDH").innerHTML = "Average Deadhead/Pairing <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average deadhead hours per pairing'>" + (deadheadCount / numPairings).toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
 
     document.getElementById("stats_distribution1Day").innerHTML = "1 Day <span class='badge bg-primary rounded-pill'>" + dayDistribution[0].toLocaleString("en-US") + " </span>";
     document.getElementById("stats_distribution2Day").innerHTML = "2 Day <span class='badge bg-primary rounded-pill'>" + dayDistribution[1].toLocaleString("en-US") + " </span>";
