@@ -209,8 +209,9 @@ async function getPDFPairings(file, fileName) {
     let firstLine = text.split(/\r?\n|\r|\n/g)[0];
     month = firstLine.split(" ")[0].substring(0, 3).toUpperCase();
     if (month == "OCO") month = "OCT";
-    year = firstLine.split(" ")[1].substring(2, 4);
+    year = firstLine.split(" ")[1].substring(2, 4);  
     codeshare = firstLine.split(" ")[3];
+    if (firstLine.split(" ")[2] != "Pilot") codeshare = firstLine.split(" ")[2];
 
     const builtPairings = await buildPairings(text);
     const parsedPairings = await parsePairings(builtPairings, codeshare);
