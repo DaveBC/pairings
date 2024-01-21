@@ -195,7 +195,7 @@ async function getPDFPairings(file, fileName) {
 
     // Check first line to see if it is a pairing file.
     // FORMAT: Month Year Pilot AA/DL/UA Pairings
-    if (text.split(/\r?\n|\r|\n/g)[0].search(/^(January|February|March|April|May|June|July|August|September|October|November|December|Ocotber) (20)(\d{2}) Pilot (AA|DL|UA) Pairings .*$/) == -1) {
+    if (text.split(/\r?\n|\r|\n/g)[0].search(/^(January|February|March|April|May|June|July|August|September|October|November|December|Ocotber) (20)(\d{2}) (Pilot )?(AA|DL|UA) Pairings .*$/) == -1) {
         // Incorrect file format.
         let progressBar = document.getElementById(fileName).children[0].children[0];
         progressBar.style.width = "100%";
