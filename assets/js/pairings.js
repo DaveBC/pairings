@@ -343,16 +343,16 @@ async function buildPairings(pdfText) {
  * @returns {Pairing[]} Array of pairing objects.
  */
 async function parsePairings(pairArr, codeshare) {
-    pairings = [];
-    pairingStrings = [];
-    flag = false;
-    pairingStr = "";
+    let pairings = [];
+    // let pairingStrings = [];
+    // let flag = false;
+    // let pairingStr = "";
 
     // Create pairing objects, and legs.
     for (let j = 0; j < pairArr.length; j++) {
         let pairing = pairArr[j];
         // Create new pairing object.
-        pairingObj = new Pairing("0");
+        let pairingObj = new Pairing("0");
         pairingObj.codeshare = codeshare;
 
         // Iterate through each line.
@@ -547,57 +547,6 @@ async function parsePairings(pairArr, codeshare) {
                     }
                     leg.flightNum = reg[1];
 
-                    // Origin. Format: AAA
-                    // if (reg[2].search(/^[A-Z]{3}$/) == -1) {
-                    //     console.log("[AUTOCORRECT] Fixing origin.");
-                    //     if (reg[2].length < 3) {
-                    //         if ( (reg[2].length + reg[3].length) == 3 && (reg[2]+reg[3]).search(/^[0-9]+$/) == -1) {
-                    //             reg[2] = reg[2] + reg.splice(3,1);
-                    //         }
-                    //         else if (reg[2].search(/^[0-9]+$/) != -1) {
-                    //             // Flight number spilled over.
-                    //             leg.flightNum = leg.flightNum + reg.splice(2,1);
-                    //         }
-                    //         else {
-                    //             console.error("[ERROR] Incorrect origin format for pairing. " + pairingObj.id);
-                    //             console.error(reg[2]);
-                    //             console.error(reg);
-                    //             throw new Error("Incorrect origin format for pairing.");
-                    //         }
-                    //     }
-                    //     else {
-                    //         // Check if flight number spilled over.
-                    //         if (reg[2].substring(0,2).search(/^[0-9]+$/) != -1) {
-                    //             leg.flightNum = leg.flightNum + reg[2].substring(0,2);
-                    //             reg[2] = reg[2].substring(2);
-                    //         }
-                    //         else if (reg[2].substring(0,1).search(/^[0-9]+$/ != -1)) {
-                    //             leg.flightNum = leg.flightNum + reg[2].substring(0,1);
-                    //             reg[2] = reg[2].substring(1);
-                    //         }
-                    //         else {
-                    //             console.error("[ERROR] Incorrect origin format for pairing. " + pairingObj.id);
-                    //             console.error(reg[2]);
-                    //             console.error(reg);
-                    //             throw new Error("Incorrect origin format for pairing.");
-                    //         }
-                    //     }
-                    // }
-                    // leg.origin = reg[2];
-
-                    // // Destination. Format: AA
-                    // if (reg[3].length != 3) {
-                    //     console.log("[AUTOCORRECT] Fixing destination.");
-                    //     reg[3] = reg[3] + reg.splice(4,1);
-                    //     if (reg[3].length != 3) {
-                    //         console.error("[ERROR] Incorrect destination format for pairing. " + pairingObj.id);
-                    //         console.error(reg[3]);
-                    //         console.error(reg);
-                    //         throw new Error("Incorrect destination format for pairing.");
-                    //     }
-                    // }
-                    // leg.destination = reg[3];
-
                     // Origin
                     // Split Origin-Destination
                     let origin = reg[2].split("-")[0];
@@ -675,22 +624,24 @@ async function parsePairings(pairArr, codeshare) {
                     // Not last leg of day.
                     if (!pairing[i + 1].includes("D-END")) {
                         // Ground time. Format: hhmm. Blank if last flight of day.
-                        if (reg[7].search(/^[0-9]{2,4}$/) == -1) {
-                            console.log("[AUTOCORRECT] Fixing ground time.");
-                            if (reg[7].length > 4) {
-                                reg.splice(8, 0, reg.substring(2));
-                                reg[7] = reg[7].substring(0, 2);
-                            }
-                            else {
-                                reg[7] = reg[7] + reg.splice(8, 1);
-                            }
+                        if (pairingObj.id != "W7325") { // Temp fix for ground time less than 10 minutes.
                             if (reg[7].search(/^[0-9]{2,4}$/) == -1) {
-                                console.log(pairing[i]);
-                                console.log(i);
-                                console.error("[ERROR] Incorrect ground time format for pairing. " + pairingObj.id);
-                                console.error(reg[7]);
-                                console.error(reg);
-                                throw new Error("Incorrect ground time format for pairing.");
+                                console.log("[AUTOCORRECT] Fixing ground time.");
+                                if (reg[7].length > 4) {
+                                    reg.splice(8, 0, reg.substring(2));
+                                    reg[7] = reg[7].substring(0, 2);
+                                }
+                                else {
+                                    reg[7] = reg[7] + reg.splice(8, 1);
+                                }
+                                if (reg[7].search(/^[0-9]{2,4}$/) == -1) {
+                                    console.log(pairing[i]);
+                                    console.log(i);
+                                    console.error("[ERROR] Incorrect ground time format for pairing. " + pairingObj.id);
+                                    console.error(reg[7]);
+                                    console.error(reg);
+                                    throw new Error("Incorrect ground time format for pairing.");
+                                }
                             }
                         }
                         leg.grnt = reg[7];
