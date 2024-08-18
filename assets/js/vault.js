@@ -29,7 +29,7 @@ function encrypt(message, passphrase) {
 * @return {String} Cipher of pairings in JSON string format.
 */
 function generateCipherText(passphrase) {
-  return encrypt(JSON.stringify(allPairingsJSON), passphrase).toString()
+  return encrypt(JSON.stringify(allPairingsJSON), passphrase).toString();
 }
 
 /**
@@ -41,9 +41,9 @@ function generateCipherText(passphrase) {
 function generateMonthlyCipherText(passphrase, months) {
   var pairings = [];
   for (let i = 0; i < months && i < allPairingsJSON.length; i++) {
-    pairings.push([allPairingsJSON[i][0], allPairingsJSON[i][1], allPairingsJSON[i][2]])
+    pairings.push([allPairingsJSON[i][0], allPairingsJSON[i][1], allPairingsJSON[i][2]]);
   }
-  return encrypt(JSON.stringify(pairings), passphrase).toString()
+  return encrypt(JSON.stringify(pairings), passphrase).toString();
 }
 
 /**
@@ -219,5 +219,23 @@ function isMobile() {
         isMobile = window.getComputedStyle(bodyElement).getPropertyValue('content').indexOf('mobile') !== -1;
     }
     
-    return isMobile
+    return isMobile;
+}
+
+/**
+ * Removes last month from allPairingsJSON.
+ * @return {undefined}
+ */
+function removeLastMonth() {
+  if (allPairingsJSON.length > 2) {
+    allPairingsJSON.splice(allPairingsJSON.length-1,1);
+    document.getElementById("uploadInput").value = null;
+    document.getElementById("uploadList").innerHTML = "";
+    document.getElementById("month-pagination").innerHTML = pagination;
+    buildLegs();
+    console.log("Last month removed.");
+  }
+  else {
+    console.log("Nothing to remove.");
+  }
 }
