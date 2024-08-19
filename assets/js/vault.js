@@ -229,11 +229,9 @@ function isMobile() {
 function removeLastMonth() {
   if (allPairingsJSON.length > 2) {
     allPairingsJSON.splice(allPairingsJSON.length-1,1);
-    document.getElementById("uploadInput").value = null;
-    document.getElementById("uploadList").innerHTML = "";
-    document.getElementById("month-pagination").innerHTML = pagination;
     buildLegs();
     console.log("Last month removed.");
+    updatePagination();
   }
   else {
     console.log("Nothing to remove.");
