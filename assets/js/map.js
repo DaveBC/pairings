@@ -79,6 +79,8 @@
  * @property {Boolean} includeAirportsLegs
  * @property {Boolean} overnights
  * @property {Number[]} layoverTime
+ * @property {[String[]]} departureAirports
+ * @property {[String[]]} arrivalAirports
  */
 
 //  =======================================================================================
@@ -133,7 +135,7 @@ let map = L.map('map', {
 
 /**
  * Click variable. Used to detect double clicks.
- * @type {timeoutID}
+ * @type {number}
  */
 let pendingClick;
 
@@ -725,10 +727,12 @@ function changeMonthYear(data) {
 function loadFromDatabase() {
     return new Promise(function (resolve, reject) {
         let openRequest = indexedDB.open("RPAPairings", 1);
-
+        let exists = true;
         openRequest.onupgradeneeded = function () {
             // triggers if the client had no database
             // ...perform initialization...
+            exists = false;
+            console.log("Load.. On upgrade needed");
         };
 
         openRequest.onerror = function () {
@@ -736,22 +740,39 @@ function loadFromDatabase() {
         };
 
         openRequest.onsuccess = function () {
-            let db = openRequest.result;
-
-            if (!db.objectStoreNames.contains('pairings')) {
-                resolve([]);
+            if (!exists) {
+                toggleLoadingScreen();
+                // Remove blank database.
+                deleteDatabase();
             }
             else {
-                let txn = db.transaction('pairings', 'readonly');
-                let store = txn.objectStore('pairings');
-                let query = store.get(1);
-
-                query.onsuccess = (event) => {
-                    resolve(event.target.result);
+                let db = openRequest.result;
+                if (!db.objectStoreNames.contains('pairings')) {
+                    console.error("No pairings store in database.");
+                    reject("No pairings");
                 }
+                else {
+                    let txn = db.transaction('pairings', 'readonly');
+                    let store = txn.objectStore('pairings');
 
-                query.onerror = (event) => {
-                    console.error("Error retrieving pairings.", event);
+                    const countRequest = store.count();
+                    countRequest.onsuccess = () => {
+                        if (countRequest.result > 0) {
+                            let query = store.get(1);
+                            query.onsuccess = (event) => {
+                                resolve(event.target.result);
+                            }
+        
+                            query.onerror = (event) => {
+                                console.error("Error retrieving pairings.", event);
+                            }
+                        }
+                        else {
+                            toggleLoadingScreen();
+                            reject("Nothing to load.");
+                            deleteDatabase();
+                        }
+                    };
                 }
             }
         };
@@ -768,6 +789,7 @@ function saveToDatabase() {
     openRequest.onupgradeneeded = function () {
         // triggers if the client had no database
         // ...perform initialization...
+        console.log("Save.. On upgrade needed");
         let db = openRequest.result;
         if (!db.objectStoreNames.contains('pairings')) { // if there's no "pairings" store
             db.createObjectStore('pairings'); // create it
@@ -2545,16 +2567,26 @@ L.control.custom({
     events:
     {
         click: function (data) {
-            if (data.detail == 1) {
-                pendingClick = setTimeout(() => {
-                    clearTimeout(pendingClick);
-                    singleClickAction(data);
-                }, 200);
+            // if (data.detail == 1) {
+            //     pendingClick = setTimeout(() => {
+            //         clearTimeout(pendingClick);
+            //         singleClickAction(data);
+            //     }, 200);
+            //     console.log(data);
+            // }
+            // else {
+            //     clearTimeout(pendingClick);
+            //     doubleClickAction(data);
+            // }
+            var now = new Date().getTime();
+            var timesince = now - pendingClick;
+            if((timesince < 400) && (timesince > 0)){
+                // double tap 
+                doubleClickAction(data);  
+            } else {
+                singleClickAction(data);
             }
-            else {
-                clearTimeout(pendingClick);
-                doubleClickAction(data);
-            }
+            pendingClick = new Date().getTime();
         },
         contextmenu: function (data) {
         },
@@ -2588,8 +2620,8 @@ L.control.custom({
     position: 'bottomleft',
     content:
         '<div>' +
-        ' <nav aria-label="Page navigation example">' +
-        '<ul class="pagination" id="month-pagination">' +
+        ' <nav aria-label="Monthly Pairings">' +
+        '<ul class="pagination justify-content-center flex-wrap" id="month-pagination">' +
         '<li class="page-item">' +
         '<a id="upload" type="button" class="page-link" title="Upload" data-bs-toggle="modal" data-bs-target="#uploadModalCenter">' +
         '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i>' +

@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.6] - 2024-10-21
+
+### Fixed
+
+- Database loading error with persistent empty database.
+- Month pagination width and sizing.
+
+### Added
+
+- Mobile double tap functionality for the side menu.
+
+### Changed
+- Updated dependencies: Bootstrap 5.3.3, Bootstrap Icons 1.11.3
+
 ## [1.1.5] - 2023-11-12
 
 ### Fixed

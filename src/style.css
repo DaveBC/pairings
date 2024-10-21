@@ -5,6 +5,7 @@ html, body {
 
 .leaflet-left.leaflet-bottom {
     left: 50%;
+    width: 90vw;
 }
 
 #map { 
