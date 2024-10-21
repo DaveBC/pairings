@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Mobile double tap functionality for the side menu.
 
 ### Changed
-- Updated dependencies: Bootstrap 5.3.3, Bootstrap Icons 1.11.3
+- Updated dependencies: Bootstrap 5.3.3, Bootstrap Icons 1.11.3, JQuery 3.7.1, Font Awesome 6.6.0, pdf.js 3.11.174, crypto-js 4.2.0.
 
 ## [1.1.5] - 2023-11-12
 
