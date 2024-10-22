@@ -749,6 +749,8 @@ function loadFromDatabase() {
                 let db = openRequest.result;
                 if (!db.objectStoreNames.contains('pairings')) {
                     console.error("No pairings store in database.");
+                    toggleLoadingScreen();
+                    deleteDatabase();
                     reject("No pairings");
                 }
                 else {
@@ -769,8 +771,8 @@ function loadFromDatabase() {
                         }
                         else {
                             toggleLoadingScreen();
-                            reject("Nothing to load.");
                             deleteDatabase();
+                            reject("Nothing to load.");
                         }
                     };
                 }
