@@ -144,7 +144,9 @@ class Hotel {
  */
 const calendar = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31'];
 const daysOfTheWeek = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
-const monthsOfTheYear = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'Ocotber']
+const monthsOfTheYear = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'Ocotber',
+    'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+];
 
 
 // main();
@@ -195,7 +197,7 @@ async function getPDFPairings(file, fileName) {
 
     // Check first line to see if it is a pairing file.
     // FORMAT: Month Year Pilot AA/DL/UA Pairings
-    if (text.split(/\r?\n|\r|\n/g)[0].search(/^(January|February|March|April|May|June|July|August|September|October|November|December|Ocotber) (20)(\d{2}) (Pilot )?(AA|DL|UA) Pairings .*$/) == -1) {
+    if (text.split(/\r?\n|\r|\n/g)[0].search(/^(January|February|March|April|May|June|July|August|September|October|November|December|Ocotber|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER) (20)(\d{2}) (Pilot |PILOT )?(AA|DL|UA) (?:Pairings|PAIRINGS) .*$/) == -1) {
         // Incorrect file format.
         let progressBar = document.getElementById(fileName).children[0].children[0];
         progressBar.style.width = "100%";
@@ -211,7 +213,7 @@ async function getPDFPairings(file, fileName) {
     if (month == "OCO") month = "OCT";
     year = firstLine.split(" ")[1].substring(2, 4);  
     codeshare = firstLine.split(" ")[3];
-    if (firstLine.split(" ")[2] != "Pilot") codeshare = firstLine.split(" ")[2];
+    if (firstLine.split(" ")[2] != "Pilot" && firstLine.split(" ")[2] != "PILOT") codeshare = firstLine.split(" ")[2];
 
     const builtPairings = await buildPairings(text);
     const parsedPairings = await parsePairings(builtPairings, codeshare);

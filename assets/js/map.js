@@ -1544,7 +1544,8 @@ function pairingLinkClick(data) {
     document.getElementById("pairing-leg-layo").innerHTML = "<div>LAYO</div>";
 
     let currentDay = pairing.legs[0].day;
-    let hotelArray = [...pairing.hotels.reverse()];
+    let hotelArray = pairing.hotels.slice();
+    hotelArray = hotelArray.reverse();
 
     pairing.legs.forEach(function (leg) {
         if (leg.day != currentDay) {
@@ -2340,7 +2341,8 @@ function buildBaseDistributions(pairings) {
     let distributions = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]; // Array of arrays. Format [total, aa, dl, ua]
 
     pairings.forEach(function (pair) {
-        let baseArray = distributions[basesIATA.indexOf(pair.base)];
+        let baseArray = distributions[basesIATA.indexOf(pair.base)]; // Caused undefined baseArray error. Perhaps too slow?
+        // let baseArray = [0,0,0,0];
         baseArray[0] += 1;
         switch (pair.codeshare) {
             case 'AA': baseArray[1] += 1;
@@ -2569,26 +2571,26 @@ L.control.custom({
     events:
     {
         click: function (data) {
-            // if (data.detail == 1) {
-            //     pendingClick = setTimeout(() => {
-            //         clearTimeout(pendingClick);
-            //         singleClickAction(data);
-            //     }, 200);
-            //     console.log(data);
-            // }
-            // else {
-            //     clearTimeout(pendingClick);
-            //     doubleClickAction(data);
-            // }
-            var now = new Date().getTime();
-            var timesince = now - pendingClick;
-            if((timesince < 400) && (timesince > 0)){
-                // double tap 
-                doubleClickAction(data);  
-            } else {
-                singleClickAction(data);
+            if (data.detail == 1) {
+                pendingClick = setTimeout(() => {
+                    clearTimeout(pendingClick);
+                    singleClickAction(data);
+                }, 800);
+                console.log(data);
             }
-            pendingClick = new Date().getTime();
+            else {
+                clearTimeout(pendingClick);
+                doubleClickAction(data);
+            }
+            // var now = new Date().getTime();
+            // var timesince = now - pendingClick;
+            // if((timesince < 800) && (timesince > 0)){
+            //     // double tap 
+            //     doubleClickAction(data);  
+            // } else {
+            //     singleClickAction(data);
+            // }
+            // pendingClick = new Date().getTime();
         },
         contextmenu: function (data) {
         },
