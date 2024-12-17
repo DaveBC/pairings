@@ -57,6 +57,9 @@
         <!-- Leaflet.curve 0.9.2 https://github.com/elfalem/Leaflet.curve -->
         <script src="/assets/js/leaflet.curve.js"></script>
 
+        <!-- Arc.js 0.1.4 https://github.com/springmeyer/arc.js -->
+        <script src="/assets/js/arc.js"></script>
+
         <!-- pdf.js 3.11.174 (version must match worker in getPDFText() https://cdnjs.com/libraries/pdf.js -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha512-q+4liFwdPC/bNdhUpZx6aXDx/h77yEQtn4I1slHydcbZK34nLaR3cAeYSJshoxIOq3mjEf7xJE8YWIUHMn+oCQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
@@ -810,7 +813,7 @@
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Unlock Data</h5>
+                    <h5 class="modal-title">Unlock <a id="showData" class="page-link" data-bs-toggle="modal" data-bs-target="#dataModalCenter">Data</a></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                     </button>
                 </div>
@@ -829,6 +832,30 @@
                 <div class="modal-footer">                    
                     <button type="button" class="btn btn-primary" onclick="unlockData()" id="unlockButton">Unlock</button>                 
                 </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Unlock -->
+        <div class="modal fade" id="dataModalCenter" tabindex="-1" role="dialog" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Data</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            <select class="form-select" id="dataYear-select" aria-label="Year select" role="tablist" autocomplete="off">
+                            </select>
+                        </p>
+                        <div class="tab-content mb-3" id="dataYearTabs">                     
+                        </div>
+                    </div>
+                    <div class="modal-footer">                    
+                        <button type="button" class="btn btn-primary" onclick="downloadData()" id="downloadButton">Download</button>                 
+                    </div>
                 </div>
             </div>
         </div>

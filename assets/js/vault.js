@@ -96,6 +96,20 @@ function unlockData() {
   let passphrase = document.getElementById("inputPassphrase").value;
   let checkvalue = "U2FsdGVkX1+9HmtGUS/C3tRnPtk+Qh5Z0Yu15S0cwzk=";
   if (decrypt(checkvalue,passphrase) == "correct") {
+      getFile("datalist.json")
+      .then((res) => {
+        const files = JSON.parse(res);
+        let promiseArr = []
+        populateSelectionTable(files);
+        files.files.forEach(path => {
+          promiseArr.push(getFile(path[0]));
+        });
+        Promise.all(promiseArr).then((values) =>
+        {
+          // console.log(values);
+        });
+      });
+
       // Read from file.
       readRequest()
       .then((cipherText) => {
@@ -140,6 +154,158 @@ function unlockData() {
     unlockProgress.hidden = true;
     document.getElementById("alertPlaceholder").innerHTML = alert;
   }
+}
+
+/**
+* Generates a table of month/years of data available to download.
+* @param {files:[String, Number]} values JSON of available years and months with file size in MB {files:[]}.
+* @return {undefined}
+*/
+function populateSelectionTable(values) {
+  console.log(values);
+  const selectMenu = document.getElementById("dataYear-select");
+  const tabs = document.getElementById("dataYearTabs");
+
+  values.files.forEach((date) => {
+
+    const year = date.split("/")[0];
+    const month = date.split("/")[1].split("-")[1];
+
+    // Year Select
+    if(document.getElementById("tab-"+year) == null) {
+      selectMenu.innerHTML += '<option class="dropdown-item nav-link" id="tab-' + year + '" data-bs-toggle="tab" data-bs-target="#data-' + year + '" type="button" role="tab" aria-controls="' + year + '" aria-selected="true" value="' + year + '">' + year + '</option>'
+    }
+
+    // Populate Tab
+    if(document.getElementById("data-"+year) == null) {
+      tabs.innerHTML += '<div class="tab-pane fade" id="data-' + year + '" role="tabpanel" aria-labelledby="' + year + '-tab">' +
+                          '<div class="container text-center">' +
+                            '<div class="row">' +
+                                '<div class="col">' +
+                                  '<input type="checkbox" class="btn-check" id="data-' + year + '-01" autocomplete="off">' +
+                                  '<label class="btn btn-outline-primary w-100 m-1 disabled" for="data-' + year + '-01">Jan</label>' +
+                                  '<input type="checkbox" class="btn-check" id="data-' + year + '-04" autocomplete="off">' +
+                                  '<label class="btn btn-outline-primary w-100 m-1 disabled" for="data-' + year + '-04">Apr</label>' +
+                                  '<input type="checkbox" class="btn-check" id="data-' + year + '-07" autocomplete="off">' +
+                                  '<label class="btn btn-outline-primary w-100 m-1 disabled" for="data-' + year + '-07">Jul</label>' +
+                                  '<input type="checkbox" class="btn-check" id="data-' + year + '-10" autocomplete="off">' +
+                                  '<label class="btn btn-outline-primary w-100 m-1 disabled" for="data-' + year + '-10">Oct</label>' +
+                                '</div>' +
+                                '<div class="col">' +
+                                  '<input type="checkbox" class="btn-check" id="data-' + year + '-02" autocomplete="off">' +
+                                  '<label class="btn btn-outline-primary w-100 m-1 disabled" for="data-' + year + '-02">Feb</label>' +
+                                  '<input type="checkbox" class="btn-check" id="data-' + year + '-05" autocomplete="off">' +
+                                  '<label class="btn btn-outline-primary w-100 m-1 disabled" for="data-' + year + '-05">May</label>' +
+                                  '<input type="checkbox" class="btn-check" id="data-' + year + '-08" autocomplete="off">' +
+                                  '<label class="btn btn-outline-primary w-100 m-1 disabled" for="data-' + year + '-08">Aug</label>' +
+                                  '<input type="checkbox" class="btn-check" id="data-' + year + '-11" autocomplete="off">' +
+                                  '<label class="btn btn-outline-primary w-100 m-1 disabled" for="data-' + year + '-11">Nov</label>' +
+                                '</div>' +
+                                '<div class="col">' +
+                                  '<input type="checkbox" class="btn-check" id="data-' + year + '-03" autocomplete="off">' +
+                                  '<label class="btn btn-outline-primary w-100 m-1 disabled" for="data-' + year + '-03">Mar</label>' +
+                                  '<input type="checkbox" class="btn-check" id="data-' + year + '-06" autocomplete="off">' +
+                                  '<label class="btn btn-outline-primary w-100 m-1 disabled" for="data-' + year + '-06">Jun</label>' +
+                                  '<input type="checkbox" class="btn-check" id="data-' + year + '-09" autocomplete="off">' +
+                                  '<label class="btn btn-outline-primary w-100 m-1 disabled" for="data-' + year + '-09">Sep</label>' +
+                                  '<input type="checkbox" class="btn-check" id="data-' + year + '-12" autocomplete="off">' +
+                                  '<label class="btn btn-outline-primary w-100 m-1 disabled" for="data-' + year + '-12">Dec</label>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>'
+    }
+
+    // Enable month
+    let label = document.getElementById("data-" + year + "-" + month).nextSibling;
+    label.classList.remove("disabled");
+
+  });
+
+  // Select Option: set selected and active tab.
+  const recentYear = values.files[0].split("/")[0];
+  // class active
+  // aria selected true
+  // selected
+  const selectYear = document.getElementById("tab-"+recentYear);
+  selectYear.classList.add("active");
+  selectYear.setAttribute("aria-selected", "true");
+  selectYear.setAttribute("selected", true);
+
+  // show active
+  const dataYear = document.getElementById("data-" + recentYear);
+  dataYear.classList.add("show");
+  dataYear.classList.add("active");
+}
+
+function downloadData() {
+  // Get selected months.
+  const dataYearTabs = document.getElementById("dataYearTabs");
+  const inputs = dataYearTabs.getElementsByTagName("input");
+  let downloadList = [];
+  for(let i = 0; i < inputs.length; i++) {
+    if(inputs[i].checked) downloadList.push(inputs[i].id.split("data-")[1]);
+  };
+
+  downloadList.forEach(file => {
+    promiseArr.push(getFile(file.split("-")[0] + "/" + file));
+  });
+  Promise.all(promiseArr).then((cipherText) =>
+  {
+    const passphrase = document.getElementById("inputPassphrase").value;
+    // Decrypt.
+    let plain = decrypt(encodeURI(cipherText), passphrase);
+
+    // Convert from String to JSON.
+    // Replace allPairingsJSON.
+    allPairingsJSON = JSON.parse(plain);
+    unlockButton.innerHTML = 'Upload';
+    unlockButton.disabled = false;
+
+    // Reload pagination.
+    updatePagination();
+
+    // Update selected year and month. 
+    // Save to database.
+    if (allPairingsJSON.length != 0) {
+        pairingsJSON = allPairingsJSON[0][2];
+        year = "20" + allPairingsJSON[0][1];
+        month = monthArray.indexOf(allPairingsJSON[0][0]);
+        saveToDatabase();
+    }
+
+    // Build legs.
+    buildLegs()
+      .then(() =>  { $('#unlockModalCenter').modal('hide')
+      unlockButton.innerHTML = 'Unlock';
+      unlockButton.disabled = false;
+      unlockProgress.hidden = true; });
+  });
+}
+
+/**
+* Download encrypted pairing data.
+* @return {Promise} Promise of pairing data string.
+*/
+function getFile(filename) {
+  return new Promise(function(resolve, reject) {
+      const req = new XMLHttpRequest();
+      req.onload = function () {
+          if (req.status >= 200 && req.status < 300) {
+            resolve(req.response);
+          } else {
+            reject({
+              status: req.status,
+              statusText: req.statusText
+            });
+          }
+        };
+      req.onerror = reject;
+      req.addEventListener("progress", updateProgress);
+      req.open("GET", "/assets/data/"+filename);
+      req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8')
+      req.send();
+  });
 }
 
 /**

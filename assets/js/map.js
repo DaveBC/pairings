@@ -216,11 +216,33 @@ const purpleIcon = L.icon({
  * Destination marker/icon.
  * @constant {L.icon}
  */
+const purpleIconBig = L.icon({
+    iconUrl: '/assets/images/PurpleCircle.png',
+
+    iconSize: [20, 20], // size of the icon
+    iconAnchor: [10, 10], // point of the icon which will correspond to marker's location
+});
+
+/**
+ * Destination marker/icon.
+ * @constant {L.icon}
+ */
 const tealIcon = L.icon({
     iconUrl: '/assets/images/TealCircle.png',
 
     iconSize: [10, 10], // size of the icon
     iconAnchor: [5, 5], // point of the icon which will correspond to marker's location
+});
+
+/**
+ * Destination marker/icon.
+ * @constant {L.icon}
+ */
+const tealIconBig = L.icon({
+    iconUrl: '/assets/images/TealCircle.png',
+
+    iconSize: [20, 20], // size of the icon
+    iconAnchor: [10, 10], // point of the icon which will correspond to marker's location
 });
 
 /**
@@ -233,6 +255,15 @@ const rpaIcon = L.icon({
     iconAnchor: [12, 35]
 });
 
+/**
+ * Republic Airways Base marker/icon.
+ * @constant {L.icon}
+ */
+const rpaIconBig = L.icon({
+    iconUrl: '/assets/images/RPAPin_small.png',
+    iconSize: [37, 52],
+    iconAnchor: [18, 52]
+});
 /**
  * Array of base markers.
  * @constant {L.marker[]}
@@ -638,11 +669,21 @@ function getPairings() {
                 });
                 modifiedPair.legs = matchedLegs;
                 if (modifiedPair.legs.length > 0) {
-                    pairings.push(modifiedPair);
-                }
+                    let index = 0;
+                    // Alphabetical insert.
+                    while (index < pairings.length && modifiedPair.id > pairings[index].id) {
+                        index++;
+                    }
+                    pairings.splice(index, 0, modifiedPair);
+                    }
             }
             else {
-                pairings.push(pair);
+                let index = 0;
+                // Alphabetical insert.
+                while (index < pairings.length && pair.id > pairings[index].id) {
+                    index++;
+                }
+                pairings.splice(index, 0, pair);
             }
         });
         resolve(pairings);
@@ -652,7 +693,7 @@ function getPairings() {
 
 /**
  * Generate a map of legs to a pairing list and codeshare array..
- * "ORIG-DEST -> {pairings: [Pairinglist], codeshares: ['ua','aa','dl']}"
+ * "ORIG-DEST -> {pairings_out: [Pairinglist], pairings_in: [Pairinglist], codeshares: ['ua','aa','dl']}"
  * @param {Pairing[]} pairings - Array of pairings.
  * @return {Promise<Map<String, Object>>} Promise to a map of legs mapped to a pairing list and codeshare array.
  */
@@ -662,14 +703,36 @@ function getLegs(pairings) {
     return new Promise(function (resolve) {
         pairings.forEach(function (pair) {
             pair.legs.forEach(function (leg) {
+                
                 let legStr = leg.origin + '-' + leg.destination;
+                let swapped = false;
+                // Store alphabetically
+                if (leg.origin > leg.destination) {
+                    legStr = leg.destination + '-' + leg.origin;
+                    swapped = true;
+                }
+
+                // Check if ORIG-DEST already exists.
                 if (legList.has(legStr)) {
-                    legList.get(legStr).pairings.push(pair.id);
-                    if (!legList.get(legStr).codeshares.includes(pair.codeshare)) {
-                        legList.get(legStr).codeshares.push(pair.codeshare);
+                    if(!swapped) {
+                        legList.get(legStr).pairings_out.push(pair.id);
+                        if (!legList.get(legStr).codeshares_out.includes(pair.codeshare)) {
+                            legList.get(legStr).codeshares_out.push(pair.codeshare);
+                        }
+                    }
+                    else {
+                        legList.get(legStr).pairings_in.push(pair.id);
+                        if (!legList.get(legStr).codeshares_in.includes(pair.codeshare)) {
+                            legList.get(legStr).codeshares_in.push(pair.codeshare);
+                        }
                     }
                 } else {
-                    legList.set(legStr, { pairings: [pair.id], codeshares: [pair.codeshare] });
+                    if(!swapped) {
+                        legList.set(legStr, { pairings_out: [pair.id], pairings_in: [], codeshares_out: [pair.codeshare], codeshares_in: [] });
+                    }
+                    else {
+                        legList.set(legStr, { pairings_out: [], pairings_in: [pair.id], codeshares_out: [], codeshares_in: [pair.codeshare] });
+                    }
                 }
 
                 // Overnights
@@ -678,7 +741,16 @@ function getLegs(pairings) {
                         overnightAirports.set(leg.destination,[pair.id]);
                     }
                     else {
-                        overnightAirports.get(leg.destination).push(pair.id);
+                        let index = 0;
+                        let destinations = overnightAirports.get(leg.destination);
+
+                        // Alphabetical insert.
+                        while (index < destinations.length && pair.id > destinations[index]) {
+                            index++;
+                        }
+                        destinations.splice(index, 0, pair.id);
+                        overnightAirports.set(leg.destination, destinations);
+                        // overnightAirports.get(leg.destination).push(pair.id);
                     }
                 }
 
@@ -939,8 +1011,36 @@ function curvedPath(latlng1, latlng2, options) {
 }
 
 /**
+ * Creates an arced path.
+ * @param {Number[]} latlng1 Coordinates of the starting point.
+ * @param {Number[]} latlng2 Coordinates of the end point.
+ * @param {Object} options Path options. 
+ * @see {@link https://leafletjs.com/reference.html#path} for path options.
+ * @returns {Promise<L.polyline>} A promise to the L.polyline object.
+ */
+function arcPath(latlng1, latlng2, options) {
+    return new Promise(function (resolve, reject) {
+
+        const start = {x: latlng1[1], y: latlng1[0]};
+        const end = {x: latlng2[1], y: latlng2[0]};
+
+        const generator = new arc.GreatCircle(start, end);
+        const line = generator.Arc(50);
+
+        // Change to lat-lng format.
+        const polyline = line.geometries[0].coords.map((xy, index) => {
+            return [xy[1],xy[0]];
+        });
+
+        const cP = L.polyline(polyline, options);
+        resolve(cP);
+    });
+}
+
+/**
  * Return array of curves from the array of legs.
  * Map of "ORIG-DEST -> {pairings: [Pairinglist], codeshares: ['ua','aa','dl']}"
+ * Map of "ORIG-DEST -> {pairings_out: [Pairinglist], pairings_in: [Pairinglist], codeshares_out: ['ua','aa','dl'], codeshares_in: ['ua','aa','dl']}"
  * @param {Map<String, Object>} legs - Map of legs.
  * @return {Promise<L.curve[]>} Promise to an array of L.curve objects.
  */
@@ -955,24 +1055,46 @@ function getCurves(legs) {
             // Add to destination array.
             if (!routeDestinations.has(legKey.split("-")[1])) {
                 // Ignore base airports.
-                if (!basesIATA.includes(legKey.split("-")[1])) {
+                // if (!basesIATA.includes(legKey.split("-")[1])) {
                     // routeDestinations.push(legKey.split("-")[1]);
-                    routeDestinations.set(legKey.split("-")[1], legPairing.pairings)
-                }
+                    routeDestinations.set(legKey.split("-")[1], legPairing.pairings_out)
+                // }
             }
             else {
-                if (!basesIATA.includes(legKey.split("-")[1])) {
+                // if (!basesIATA.includes(legKey.split("-")[1])) {
                     // Get current pairings.
                     let mergedArray = routeDestinations.get(legKey.split("-")[1])
                     // Add new pairings without duplicating.
-                    for (let i = 0; i < legPairing.pairings.length; i++) {
-                        if (!mergedArray.includes(legPairing.pairings[i])) {
-                            mergedArray.push(legPairing.pairings[i])
+                    for (let i = 0; i < legPairing.pairings_out.length; i++) {
+                        if (!mergedArray.includes(legPairing.pairings_out[i])) {
+                            mergedArray.push(legPairing.pairings_out[i])
                         }
                     }
                     // Sort alphabetically and push new array to map.
                     routeDestinations.set(legKey.split("-")[1], mergedArray.sort())
-                }
+                // }
+            }
+            // Add to destination array.
+            if (!routeDestinations.has(legKey.split("-")[0])) {
+                // Ignore base airports.
+                // if (!basesIATA.includes(legKey.split("-")[0])) {
+                    // routeDestinations.push(legKey.split("-")[1]);
+                    routeDestinations.set(legKey.split("-")[0], legPairing.pairings_in)
+                // }
+            }
+            else {
+                // if (!basesIATA.includes(legKey.split("-")[0])) {
+                    // Get current pairings.
+                    let mergedArray = routeDestinations.get(legKey.split("-")[0])
+                    // Add new pairings without duplicating.
+                    for (let i = 0; i < legPairing.pairings_in.length; i++) {
+                        if (!mergedArray.includes(legPairing.pairings_in[i])) {
+                            mergedArray.push(legPairing.pairings_in[i])
+                        }
+                    }
+                    // Sort alphabetically and push new array to map.
+                    routeDestinations.set(legKey.split("-")[0], mergedArray.sort())
+                // }
             }
 
             let airports = [latlng1, latlng2];
@@ -980,15 +1102,20 @@ function getCurves(legs) {
             Promise.all(airports)
                 .then((coords) => {
                     let lineColor = "black";
-                    if (legPairing.codeshares.length == 1) {
-                        if (legPairing.codeshares[0] == "AA") { lineColor = mapColors.aa };
-                        if (legPairing.codeshares[0] == "DL") { lineColor = mapColors.dl };
-                        if (legPairing.codeshares[0] == "UA") { lineColor = mapColors.ua };
+                    if ((legPairing.codeshares_out.length == 1 && legPairing.codeshares_in.length == 1 && legPairing.codeshares_out[0] == legPairing.codeshares_in[0]) || (legPairing.codeshares_out.length == 1 && legPairing.codeshares_in.length == 0)) {
+                        if (legPairing.codeshares_out[0] == "AA") { lineColor = mapColors.aa };
+                        if (legPairing.codeshares_out[0] == "DL") { lineColor = mapColors.dl };
+                        if (legPairing.codeshares_out[0] == "UA") { lineColor = mapColors.ua };
+                    }
+                    else if (legPairing.codeshares_out.length == 0 && legPairing.codeshares_in.length == 1) {
+                        if (legPairing.codeshares_in[0] == "AA") { lineColor = mapColors.aa };
+                        if (legPairing.codeshares_in[0] == "DL") { lineColor = mapColors.dl };
+                        if (legPairing.codeshares_in[0] == "UA") { lineColor = mapColors.ua };
                     }
                     else {
                         lineColor = mapColors.purple;
                     }
-                    curvePromises.push(curvedPath(coords[0], coords[1], { color: lineColor, weight: '2.0', pairings: legPairing.pairings, route: legKey, codeshares: legPairing.codeshares }));
+                    curvePromises.push(arcPath(coords[0], coords[1], { color: lineColor, weight: '2.5', pairings_out: legPairing.pairings_out, pairings_in: legPairing.pairings_in, route: legKey, codeshares_out: legPairing.codeshares_out, codeshares_in: legPairing.codeshares_in }));
                 })
         });
         resolve(curvePromises);
@@ -1022,7 +1149,58 @@ function buildRoutesGroupLayer(lineArr) {
     const routeLayerG = L.layerGroup();
     return new Promise(function (resolve) {
         lineArr.forEach(function (line) {
-            line.bindPopup("<b>" + line.options.route + "</b> (" + line.options.codeshares.map(function (cs) { return cs.toUpperCase(); }).join(", ") + ")</br>" + (line.options.pairings.map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", "));
+            // line.bindPopup("<b>" + line.options.route + "</b> (" + line.options.codeshares.map(function (cs) { return cs.toUpperCase(); }).join(", ") + ")</br>" + (line.options.pairings.map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", "));
+            
+            let disabled_out = ' active';
+            let disabled_in = "";
+            let aria_selected_out = 'true';
+            let aria_selected_in = 'false';
+            let show_out = ' active show';
+            let show_in = '';
+            if(line.options.pairings_out.length == 0) {
+                disabled_out = ' disabled';
+                disabled_in =  ' active';
+                aria_selected_out = 'false';
+                aria_selected_in = 'true';
+                show_out = '';
+                show_in = ' active show';
+            }
+            if(line.options.pairings_in.length == 0) disabled_in = ' disabled';
+
+            line.bindPopup(
+                '<ul class="nav nav-tabs nav-fill" id="lineTab" role="tablist">' +
+                '<li class="nav-item" role="presentation">' +
+                    `<button class="nav-link${disabled_out}" id="outbound-tab" data-bs-toggle="tab" data-bs-target="#outbound-tab-pane" type="button" role="tab" aria-controls="outbound-tab-pane" aria-selected="${aria_selected_out}">` + line.options.route + '</button>' +
+                '</li>' +
+                '<li class="nav-item" role="presentation">' +
+                    `<button class="nav-link${disabled_in}" id="inbound-tab" data-bs-toggle="tab" data-bs-target="#inbound-tab-pane" type="button" role="tab" aria-controls="inbound-tab-pane" aria-selected="${aria_selected_in}">` + line.options.route.split("-")[1] + "-" + line.options.route.split("-")[0] + '</button>' +
+                '</li>' +
+                '</ul>' +
+                '<div class="tab-content" id="lineTabContent">' +
+                    `<div class="tab-pane card border-top-0 rounded-0 border p-2 overflow-auto fade${show_out}" style="max-height: 200px;min-height:200px;" id="outbound-tab-pane" role="tabpanel" aria-labelledby="outbound-tab" tabindex="0"><p class="fw-light">Codeshares: ` + line.options.codeshares_out.map(function (cs) { return cs.toUpperCase(); }).join(", ") + '</p><p class="fw-normal">' + 
+                    (line.options.pairings_out.map(pair => `<a class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") + '</p>' +
+                    '</div>' +
+                    `<div class="tab-pane card border-top-0 rounded-0 border p-2 overflow-auto fade${show_in}" style="max-height: 200px;min-height:200px;" id="inbound-tab-pane" role="tabpanel" aria-labelledby="inbound-tab" tabindex="0"><p class="fw-light">Codeshares: ` + line.options.codeshares_in.map(function (cs) { return cs.toUpperCase(); }).join(", ") + '</p><p class="fw-normal">' + 
+                    (line.options.pairings_in.map(pair => `<a class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") + '</p>' +
+                    '</div>' +
+                '</div>'
+
+            , {minWidth: "300"});
+
+                // Interactive weight increase on hover.
+                line.on('mouseover', function(e) {
+                    var layer = e.target;
+                    layer.setStyle({
+                        weight: 5.0
+                    });
+                });
+                line.on('mouseout', function(e) {
+                    var layer = e.target;
+                    layer.setStyle({
+                        weight: 2.5
+                    });
+                });
+
             routeLayerG.addLayer(line);
         });
         resolve(routeLayerG);
@@ -1065,19 +1243,113 @@ function getAirportLatLon(airportIATA) {
  * @return {Promise<L.marker[]>} Promise of destination markers (L.marker).
  */
 function getMarkerLayers(destinationLatLons) {
-    destinationMarkers = [];
+    let destinationMarkers = [];
     destinationLatLons.forEach(function (latlon, destination) {
-        if (filter.overnights && overnightAirports.has(destination)) {
-            destinationMarkers.push(L.marker(latlon, { icon: tealIcon }).bindPopup('<b>' + destination + '</b> (Overnights)<br>' +
-                (overnightAirports.get(destination).map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ")
-            ));
-        }
-        else {
-            // List pairings
-            destinationMarkers.push(L.marker(latlon, { icon: purpleIcon }).bindPopup('<b>' + destination + '</b><br><div style="max-height: 30vh;overflow-y: auto;">' +
-                (routeDestinations.get(destination).map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") +
-                '</div>'
-            ));
+
+        //TODO: Refactor into a single branch.
+        if(basesIATA.includes(destination)) {
+            let departuresCount = 0;
+            let pairs = routeDestinations.get(destination);
+            for(let i = 0; i < pairs.length; i++) {
+                const pairing = pairingsJSON.find((pair) => pair.id == pairs[i]);
+                for(let j = 0; j < pairing.legs.length; j++) {
+                    if (!pairing.legs[j].deadhead && pairing.legs[j].origin == destination) {
+                        departuresCount = departuresCount + (1*pairing.days.length);
+                    }
+                }
+            }
+
+            let disabled_overnight = " disabled";
+            let overnightDiv = `<div class="tab-pane card border-top-0 rounded-0 border p-2 fade" id="overnight-tab-pane" role="tabpanel" aria-labelledby="overnight-tab" tabindex="0"><p class="fw-light"></div>`;
+            if(overnightAirports.has(destination)) {
+                if(filter.overnights) {
+                    markerIcon = tealIcon;
+                    markerIconBig = tealIconBig;
+                }
+                disabled_overnight = "";
+                overnightDiv = `<div class="tab-pane card border-top-0 rounded-0 border p-2 fade overflow-auto" style="max-height: 200px;min-height:200px;" id="overnight-tab-pane" role="tabpanel" aria-labelledby="overnight-tab" tabindex="0"><p class="fw-light">` + '<p class="fw-normal">' + 
+                        (overnightAirports.get(destination).map(pair => `<a class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") + '</p>' +
+                        '</div>'
+            }
+
+            baseMarkers[basesIATA.indexOf(destination)].bindPopup(
+                '<ul class="nav nav-tabs nav-fill" id="markerTab" role="tablist">' +
+                    '<li class="nav-item" role="presentation">' +
+                        `<button class="nav-link active" id="airport-tab" data-bs-toggle="tab" data-bs-target="#airport-tab-pane" type="button" role="tab" aria-controls="airport-tab-pane" aria-selected="true">` + destination + '</button>' +
+                    '</li>' +
+                    '<li class="nav-item" role="presentation">' +
+                        `<button class="nav-link" id="overnight-tab" data-bs-toggle="tab" data-bs-target="#overnight-tab-pane" type="button" role="tab" aria-controls="overnight-tab-pane" aria-selected="false">` + 'Overnights</button>' +
+                    '</li>' +
+                    '</ul>' +
+                    '<div class="tab-content" id="lineTabContent">' +
+                        `<div class="tab-pane card border-top-0 rounded-0 border p-2 fade active show overflow-auto" style="max-height: 200px;min-height:200px;" id="airport-tab-pane" role="tabpanel" aria-labelledby="airport-tab" tabindex="0"><p class="fw-light">Departures: ${departuresCount}</p>` + '<p class="fw-normal">' + 
+                        (routeDestinations.get(destination).map(pair => `<a class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") + '</p>' +
+                        '</div>' +
+                        `${overnightDiv}` +
+                    '</div>'
+
+                , {minWidth: "300"}
+            );
+
+            baseMarkers[basesIATA.indexOf(destination)].on('mouseover', function(e) {
+                e.target.setIcon(rpaIconBig);
+            });
+            baseMarkers[basesIATA.indexOf(destination)].on('mouseout', function(e) {
+                e.target.setIcon(rpaIcon);
+            });
+        } else {
+            let markerIcon = purpleIcon;
+            let markerIconBig = purpleIconBig;
+            let disabled_overnight = " disabled";
+            let overnightDiv = `<div class="tab-pane card border-top-0 rounded-0 border p-2 fade" id="overnight-tab-pane" role="tabpanel" aria-labelledby="overnight-tab" tabindex="0"><p class="fw-light"></div>`;
+            if(overnightAirports.has(destination)) {
+                if(filter.overnights) {
+                    markerIcon = tealIcon;
+                    markerIconBig = tealIconBig;
+                }
+                disabled_overnight = "";
+                overnightDiv = `<div class="tab-pane card border-top-0 rounded-0 border p-2 fade overflow-auto" style="max-height: 200px;min-height:200px;" id="overnight-tab-pane" role="tabpanel" aria-labelledby="overnight-tab" tabindex="0"><p class="fw-light">` + '<p class="fw-normal">' + 
+                        (overnightAirports.get(destination).map(pair => `<a class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") + '</p>' +
+                        '</div>'
+            }
+
+            let departuresCount = 0;
+            let pairs = routeDestinations.get(destination);
+            for(let i = 0; i < pairs.length; i++) {
+                const pairing = pairingsJSON.find((pair) => pair.id == pairs[i]);
+                for(let j = 0; j < pairing.legs.length; j++) {
+                    if (!pairing.legs[j].deadhead && pairing.legs[j].origin == destination) {
+                        departuresCount = departuresCount + (1*pairing.days.length);
+                    }
+                }
+            }
+
+            let marker = L.marker(latlon, {icon: markerIcon}).bindPopup(
+                '<ul class="nav nav-tabs nav-fill" id="markerTab" role="tablist">' +
+                    '<li class="nav-item" role="presentation">' +
+                        `<button class="nav-link active" id="airport-tab" data-bs-toggle="tab" data-bs-target="#airport-tab-pane" type="button" role="tab" aria-controls="airport-tab-pane" aria-selected="true">` + destination + '</button>' +
+                    '</li>' +
+                    '<li class="nav-item" role="presentation">' +
+                        `<button class="nav-link${disabled_overnight}" id="overnight-tab" data-bs-toggle="tab" data-bs-target="#overnight-tab-pane" type="button" role="tab" aria-controls="overnight-tab-pane" aria-selected="false">` + 'Overnights</button>' +
+                    '</li>' +
+                    '</ul>' +
+                    '<div class="tab-content" id="lineTabContent">' +
+                        `<div class="tab-pane card border-top-0 rounded-0 border p-2 fade active show overflow-auto " style="max-height: 200px;min-height:200px;" id="airport-tab-pane" role="tabpanel" aria-labelledby="airport-tab" tabindex="0"><p class="fw-light">Departures: ${departuresCount}</p>` + '<p class="fw-normal">' + 
+                        (routeDestinations.get(destination).map(pair => `<a class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") + '</p>' +
+                        '</div>' +
+                        `${overnightDiv}` +
+                    '</div>'
+
+                , {minWidth: "300"}
+            );
+
+            marker.on('mouseover', function(e) {
+                e.target.setIcon(markerIconBig);
+            });
+            marker.on('mouseout', function(e) {
+                e.target.setIcon(markerIcon);
+            });
+            destinationMarkers.push(marker);
         }
     });
     return Promise.all(destinationMarkers);
