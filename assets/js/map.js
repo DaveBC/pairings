@@ -332,7 +332,7 @@ let destinationMarkerGroup = L.layerGroup();
 //  =======================================================================================
 
 // Execute main function onload.
-window.onload = function () { main() };
+window.onload = function () { main(); };
 
 /**
  * Generates tooltips, fetches, loads and saves data.
@@ -400,9 +400,55 @@ function main() {
             });
     }
 
+    // Load available data.
+    getFile("datalist.json")
+      .then((res) => {
+        const files = JSON.parse(res);
+        populateSelectionTable(files);
+        createEventListeners();
+    });
+
     // Clear upload list. Don't want any carryover.
     document.getElementById("uploadInput").value = null;
     document.getElementById("uploadList").innerHTML = "";
+}
+
+/**
+* Generates event listeners for month data input tags.
+* Seperate function needed because event listener not binding in the populateSelectionTable() for 2025 months.
+* @return {undefined}
+*/
+function createEventListeners() {
+
+    // Grid checkboxes
+    const inputs = dataYearTabs.getElementsByTagName("input");
+    for(let i = 0; i < inputs.length; i++) {
+        inputs[i].addEventListener('change', (event) => {
+            if (event.target.checked) {
+              const dataDiv = document.getElementById("data-size");
+              const span = dataDiv.firstChild.firstChild;
+              span.innerHTML = (Number(span.innerHTML.split(" MB")[0]) + Number(event.target.getAttribute("data-size"))).toFixed(2) + " MB"
+            } else {
+              const dataDiv = document.getElementById("data-size");
+              const span = dataDiv.firstChild.firstChild;
+              span.innerHTML = (Number(span.innerHTML.split(" MB")[0]) - Number(event.target.getAttribute("data-size"))).toFixed(2) + " MB"
+            }
+        });
+    };
+
+    // Download button
+    const passphraseField = document.getElementById("inputPassphrase");
+    passphraseField.addEventListener("input", (event) => {
+        if(event.target.value != "") {
+            // Enable button
+            document.getElementById("downloadButton").classList.remove("disabled");
+        }
+        else {
+            // Disable button
+            document.getElementById("downloadButton").classList.add("disabled");
+        }
+    });
+
 }
 
 /**
@@ -940,8 +986,11 @@ async function clearAllData() {
         '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i>' +
         '</a></li>' +
         '<li class="page-item">' +
-        '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#unlockModalCenter">' +
+        '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#dataModalCenter">' +
         '<i class="fa-solid fa-key" aria-hidden="true"></i>' +
+        '<span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger badge rounded-pill">' +
+        '<span class="visually-hidden">New</span>' +
+        '</span>' +
         '</a></li>';
 
     // Display loading
@@ -2538,8 +2587,11 @@ function updatePagination() {
         '</a></li>'
 
     pagination.innerHTML += '<li class="page-item">' +
-    '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#unlockModalCenter">' +
+    '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#dataModalCenter">' +
     '<i class="fa-solid fa-key" aria-hidden="true"></i>' +
+    '<span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger badge rounded-pill">' +
+    '<span class="visually-hidden">New</span>' +
+    '</span>' +
     '</a></li>';
 }
 
@@ -2903,8 +2955,11 @@ L.control.custom({
         '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i>' +
         '</a></li>' +
         '<li class="page-item">' +
-        '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#unlockModalCenter">' +
+        '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#dataModalCenter">' +
         '<i class="fa-solid fa-key" aria-hidden="true"></i>' +
+        '<span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger badge rounded-pill">' +
+        '<span class="visually-hidden">New</span>' +
+        '</span>' +
         '</a></li>' +
         ' </ul>' +
         ' </nav>' +

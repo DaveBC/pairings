@@ -162,14 +162,14 @@ function unlockData() {
 * @return {undefined}
 */
 function populateSelectionTable(values) {
-  console.log(values);
+
   const selectMenu = document.getElementById("dataYear-select");
   const tabs = document.getElementById("dataYearTabs");
 
   values.files.forEach((date) => {
 
-    const year = date.split("/")[0];
-    const month = date.split("/")[1].split("-")[1];
+    const year = date[0].split("/")[0];
+    const month = date[0].split("/")[1].split("-")[1];
 
     // Year Select
     if(document.getElementById("tab-"+year) == null) {
@@ -217,13 +217,19 @@ function populateSelectionTable(values) {
     }
 
     // Enable month
-    let label = document.getElementById("data-" + year + "-" + month).nextSibling;
+    const inputTag = document.getElementById("data-" + year + "-" + month)
+    const label = inputTag.nextSibling;
     label.classList.remove("disabled");
 
+    // Set data path attribute
+    inputTag.setAttribute("data-path", date[0]);
+
+    // Set data size attribute
+    inputTag.setAttribute("data-size", date[1]);
   });
 
   // Select Option: set selected and active tab.
-  const recentYear = values.files[0].split("/")[0];
+  const recentYear = values.files[0][0].split("/")[0];
   // class active
   // aria selected true
   // selected
@@ -243,12 +249,13 @@ function downloadData() {
   const dataYearTabs = document.getElementById("dataYearTabs");
   const inputs = dataYearTabs.getElementsByTagName("input");
   let downloadList = [];
+  let promiseArr = [];
   for(let i = 0; i < inputs.length; i++) {
-    if(inputs[i].checked) downloadList.push(inputs[i].id.split("data-")[1]);
+    if(inputs[i].checked) downloadList.push(inputs[i].getAttribute("data-path"));
   };
 
   downloadList.forEach(file => {
-    promiseArr.push(getFile(file.split("-")[0] + "/" + file));
+    promiseArr.push(getFile(file));
   });
   Promise.all(promiseArr).then((cipherText) =>
   {
@@ -257,10 +264,12 @@ function downloadData() {
     let plain = decrypt(encodeURI(cipherText), passphrase);
 
     // Convert from String to JSON.
-    // Replace allPairingsJSON.
+    // TODO: Change to add to allPairingsJSON instead of overwrite.
     allPairingsJSON = JSON.parse(plain);
-    unlockButton.innerHTML = 'Upload';
-    unlockButton.disabled = false;
+
+
+    const downloadButton = document.getElementById("downloadButton");
+    downloadButton.disabled = true;
 
     // Reload pagination.
     updatePagination();
@@ -274,12 +283,13 @@ function downloadData() {
         saveToDatabase();
     }
 
+    // TODO: De-select data months.
+
     // Build legs.
     buildLegs()
-      .then(() =>  { $('#unlockModalCenter').modal('hide')
-      unlockButton.innerHTML = 'Unlock';
-      unlockButton.disabled = false;
-      unlockProgress.hidden = true; });
+      .then(() =>  { $('#dataModalCenter').modal('hide')
+      downloadButton.disabled = false;
+      downloadProgress.hidden = true; });
   });
 }
 
@@ -301,7 +311,7 @@ function getFile(filename) {
           }
         };
       req.onerror = reject;
-      req.addEventListener("progress", updateProgress);
+      // req.addEventListener("progress", updateProgress);
       req.open("GET", "/assets/data/"+filename);
       req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8')
       req.send();

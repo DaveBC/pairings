@@ -818,9 +818,9 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <label for="inputPassphrase" class="form-label">Passphrase</label>
+                    <label for="inputPassphrase_old" class="form-label">Passphrase</label>
                     <div style="position: relative;">
-                        <input type="text" id="inputPassphrase" class="form-control" aria-describedby="passphraseHelpBlock">
+                        <input type="text" id="inputPassphrase_old" class="form-control" aria-describedby="passphraseHelpBlock">
                         <div class="progress" id="unlockProgressContainer" style="position: absolute;width: 100%;top: 0;left: 0;height: 100%;" hidden="true">
                             <div class="progress-bar progress-bar-striped progress-bar-animated" id="unlockProgressBar" role="progressbar" aria-label="Unlock Bar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div> 
@@ -836,12 +836,13 @@
             </div>
         </div>
 
-        <!-- Modal Unlock -->
+        <!-- Modal Data -->
         <div class="modal fade" id="dataModalCenter" tabindex="-1" role="dialog" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Data</h5>
+                        <h5 class="modal-title">Unlock Data</h5>
+                        <div class="" id="data-size"><p class="mb-0 ms-3"><span class="badge text-bg-secondary">0 MB</span></p></div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                         </button>
                     </div>
@@ -850,11 +851,19 @@
                             <select class="form-select" id="dataYear-select" aria-label="Year select" role="tablist" autocomplete="off">
                             </select>
                         </p>
-                        <div class="tab-content mb-3" id="dataYearTabs">                     
+                        <div class="tab-content" id="dataYearTabs">                     
                         </div>
                     </div>
-                    <div class="modal-footer">                    
-                        <button type="button" class="btn btn-primary" onclick="downloadData()" id="downloadButton">Download</button>                 
+                    <div class="modal-footer">
+                        <div class="input-group">
+                            <input type="text" id="inputPassphrase" class="form-control shadow-none" aria-describedby="passphraseHelpBlock" placeholder="Passphrase" autocomplete="off">
+                            <button type="button" class="btn btn-primary disabled" onclick="downloadData()" id="downloadButton">
+                                <i class="fa-solid fa-cloud-arrow-down"></i>                                                             
+                            </button>
+                        </div>
+                        <div id="passphraseHelpBlock" class="form-text align-self-start">
+                            The passphrase can be obtained from <a target="_blank" rel="noopener noreferrer" href="https://www.facebook.com/groups/628425157291815/posts/2942229619244679/?__cft__[0]=AZVDqdYpJTwch6wy3Yi05ZI3Ae1OxWfgREpt78DPWmXAk8byg3QS-I9gSAg871ZDmemssyXhhyuMW3XCl-XOi653fX9AVBgcOuhAXUhwsFUsXGkTMroP4SdvScghG3BBsaKAtkXrFlMNplUZDf8E584F&__tn__=%2CO%2CP-R">this facebook post</a>.
+                        </div>              
                     </div>
                 </div>
             </div>
