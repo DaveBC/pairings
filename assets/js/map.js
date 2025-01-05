@@ -2649,7 +2649,7 @@ function updatePagination() {
     for (let i = 0; i < allPairingsJSON.length; i++) {
         let active = "";
         if (i == 0) active = " active";
-        pagination.innerHTML += '<li class="page-item"><a class="page-link' + active + '" href="#">' + allPairingsJSON[i][0].charAt(0) + allPairingsJSON[i][0].slice(1).toLowerCase() + '-' + allPairingsJSON[i][1] + '</a></li>';
+        pagination.innerHTML += '<li class="page-item"><a class="page-link' + active + '" href="#">' + String(allPairingsJSON[i][0]).charAt(0) + allPairingsJSON[i][0].slice(1).toLowerCase() + '-' + allPairingsJSON[i][1] + '</a></li>';
     }
     pagination.innerHTML += '<li class="page-item">' +
         '<a id="upload" type="button" class="page-link" title="Upload" data-bs-toggle="modal" data-bs-target="#uploadModalCenter">' +
