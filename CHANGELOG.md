@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- Merged inbound and outbound routes to declutter the map.
+- Merged inbound and outbound routes to de-clutter the map.
 - Route paths are now great circle paths rather than bezier curves.
-- Route popup is now tabbed to seperate inbound and outbound pairings.
+- Route popup is now tabbed to separate inbound and outbound pairings.
 - Pairings are now listed alphabetically.
 
 ### Added
@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Mouse-over increases size of destination markers.
 - Selective data download. Ability to choose which months to download. Size of data is also shown prior to download.
 - Selective data removal.
-- Depature count added to destination marker popup.
+- Departure count added to destination marker popup.
 - Overnight tab added to destination marker popup. Disabled if there are no overnights.
 
 ## [1.1.7] - 2024-12-14
