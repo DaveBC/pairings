@@ -216,11 +216,33 @@ const purpleIcon = L.icon({
  * Destination marker/icon.
  * @constant {L.icon}
  */
+const purpleIconBig = L.icon({
+    iconUrl: '/assets/images/PurpleCircle.png',
+
+    iconSize: [20, 20], // size of the icon
+    iconAnchor: [10, 10], // point of the icon which will correspond to marker's location
+});
+
+/**
+ * Destination marker/icon.
+ * @constant {L.icon}
+ */
 const tealIcon = L.icon({
     iconUrl: '/assets/images/TealCircle.png',
 
     iconSize: [10, 10], // size of the icon
     iconAnchor: [5, 5], // point of the icon which will correspond to marker's location
+});
+
+/**
+ * Destination marker/icon.
+ * @constant {L.icon}
+ */
+const tealIconBig = L.icon({
+    iconUrl: '/assets/images/TealCircle.png',
+
+    iconSize: [20, 20], // size of the icon
+    iconAnchor: [10, 10], // point of the icon which will correspond to marker's location
 });
 
 /**
@@ -233,6 +255,15 @@ const rpaIcon = L.icon({
     iconAnchor: [12, 35]
 });
 
+/**
+ * Republic Airways Base marker/icon.
+ * @constant {L.icon}
+ */
+const rpaIconBig = L.icon({
+    iconUrl: '/assets/images/RPAPin_small.png',
+    iconSize: [37, 52],
+    iconAnchor: [18, 52]
+});
 /**
  * Array of base markers.
  * @constant {L.marker[]}
@@ -301,7 +332,7 @@ let destinationMarkerGroup = L.layerGroup();
 //  =======================================================================================
 
 // Execute main function onload.
-window.onload = function () { main() };
+window.onload = function () { main(); };
 
 /**
  * Generates tooltips, fetches, loads and saves data.
@@ -342,6 +373,8 @@ function main() {
                         pairingsJSON = allPairingsJSON[0][2]; // Set newest pairing as the visible.
                         year = "20" + allPairingsJSON[0][1];
                         month = monthArray.indexOf(allPairingsJSON[0][0]);
+                        // Make selection table reflect already loaded data.
+                        updateSelectionTable();
                         buildLegs()
                             .then(() => toggleLoadingScreen());
                     }
@@ -369,9 +402,75 @@ function main() {
             });
     }
 
+    // Load available data.
+    getFile("datalist.json")
+        .then((res) => {
+            const files = JSON.parse(res);
+            populateSelectionTable(files);
+            createEventListeners();
+        });
+
     // Clear upload list. Don't want any carryover.
     document.getElementById("uploadInput").value = null;
     document.getElementById("uploadList").innerHTML = "";
+}
+
+/**
+* Generates event listeners for month data input tags.
+* Seperate function needed because event listener not binding in the populateSelectionTable() for 2025 months.
+* @return {undefined}
+*/
+function createEventListeners() {
+
+    // Grid checkboxes
+    const dataYearTabs = document.getElementById("dataYearTabs");
+    const inputs = dataYearTabs.getElementsByTagName("input");
+    for (let i = 0; i < inputs.length; i++) {
+        inputs[i].addEventListener('change', (event) => {
+            if (event.target.checked) {
+                const dataDiv = document.getElementById("data-size");
+                const span = dataDiv.firstChild.firstChild;
+                span.innerHTML = (Number(span.innerHTML.split(" MB")[0]) + Number(event.target.getAttribute("data-size"))).toFixed(2) + " MB";
+                if (document.getElementById("inputPassphrase").value != "") document.getElementById("downloadButton").classList.remove("disabled");
+            } else {
+                const dataDiv = document.getElementById("data-size");
+                const span = dataDiv.firstChild.firstChild;
+                span.innerHTML = (Number(span.innerHTML.split(" MB")[0]) - Number(event.target.getAttribute("data-size"))).toFixed(2) + " MB";
+                let selected = 0;
+                for (let i = 0; i < inputs.length; i++) {
+                    if (inputs[i].checked) selected++;
+                }
+                if (selected == 0) document.getElementById("downloadButton").classList.add("disabled");
+            }
+        });
+    };
+
+    // Download button
+    const passphraseField = document.getElementById("inputPassphrase");
+    let selected = 0;
+    for (let i = 0; i < inputs.length; i++) {
+        if (inputs[i].checked) selected++;
+    }
+    if (passphraseField.value != "" && selected > 0) {
+        // Enable button
+        document.getElementById("downloadButton").classList.remove("disabled");
+    }
+    passphraseField.addEventListener("input", (event) => {
+        const inputs = document.getElementById("dataYearTabs").getElementsByTagName("input");
+        let selected = 0;
+        for (let i = 0; i < inputs.length; i++) {
+            if (inputs[i].checked) selected++;
+        }
+        if (event.target.value != "" && selected > 0) {
+            // Enable button
+            document.getElementById("downloadButton").classList.remove("disabled");
+        }
+        else {
+            // Disable button
+            document.getElementById("downloadButton").classList.add("disabled");
+        }
+    });
+
 }
 
 /**
@@ -638,11 +737,21 @@ function getPairings() {
                 });
                 modifiedPair.legs = matchedLegs;
                 if (modifiedPair.legs.length > 0) {
-                    pairings.push(modifiedPair);
+                    let index = 0;
+                    // Alphabetical insert.
+                    while (index < pairings.length && modifiedPair.id > pairings[index].id) {
+                        index++;
+                    }
+                    pairings.splice(index, 0, modifiedPair);
                 }
             }
             else {
-                pairings.push(pair);
+                let index = 0;
+                // Alphabetical insert.
+                while (index < pairings.length && pair.id > pairings[index].id) {
+                    index++;
+                }
+                pairings.splice(index, 0, pair);
             }
         });
         resolve(pairings);
@@ -652,7 +761,7 @@ function getPairings() {
 
 /**
  * Generate a map of legs to a pairing list and codeshare array..
- * "ORIG-DEST -> {pairings: [Pairinglist], codeshares: ['ua','aa','dl']}"
+ * "ORIG-DEST -> {pairings_out: [Pairinglist], pairings_in: [Pairinglist], codeshares: ['ua','aa','dl']}"
  * @param {Pairing[]} pairings - Array of pairings.
  * @return {Promise<Map<String, Object>>} Promise to a map of legs mapped to a pairing list and codeshare array.
  */
@@ -662,23 +771,54 @@ function getLegs(pairings) {
     return new Promise(function (resolve) {
         pairings.forEach(function (pair) {
             pair.legs.forEach(function (leg) {
+
                 let legStr = leg.origin + '-' + leg.destination;
+                let swapped = false;
+                // Store alphabetically
+                if (leg.origin > leg.destination) {
+                    legStr = leg.destination + '-' + leg.origin;
+                    swapped = true;
+                }
+
+                // Check if ORIG-DEST already exists.
                 if (legList.has(legStr)) {
-                    legList.get(legStr).pairings.push(pair.id);
-                    if (!legList.get(legStr).codeshares.includes(pair.codeshare)) {
-                        legList.get(legStr).codeshares.push(pair.codeshare);
+                    if (!swapped) {
+                        legList.get(legStr).pairings_out.push(pair.id);
+                        if (!legList.get(legStr).codeshares_out.includes(pair.codeshare)) {
+                            legList.get(legStr).codeshares_out.push(pair.codeshare);
+                        }
+                    }
+                    else {
+                        legList.get(legStr).pairings_in.push(pair.id);
+                        if (!legList.get(legStr).codeshares_in.includes(pair.codeshare)) {
+                            legList.get(legStr).codeshares_in.push(pair.codeshare);
+                        }
                     }
                 } else {
-                    legList.set(legStr, { pairings: [pair.id], codeshares: [pair.codeshare] });
+                    if (!swapped) {
+                        legList.set(legStr, { pairings_out: [pair.id], pairings_in: [], codeshares_out: [pair.codeshare], codeshares_in: [] });
+                    }
+                    else {
+                        legList.set(legStr, { pairings_out: [], pairings_in: [pair.id], codeshares_out: [], codeshares_in: [pair.codeshare] });
+                    }
                 }
 
                 // Overnights
                 if (leg.layo != "") {
                     if (!overnightAirports.has(leg.destination)) {
-                        overnightAirports.set(leg.destination,[pair.id]);
+                        overnightAirports.set(leg.destination, [pair.id]);
                     }
                     else {
-                        overnightAirports.get(leg.destination).push(pair.id);
+                        let index = 0;
+                        let destinations = overnightAirports.get(leg.destination);
+
+                        // Alphabetical insert.
+                        while (index < destinations.length && pair.id > destinations[index]) {
+                            index++;
+                        }
+                        destinations.splice(index, 0, pair.id);
+                        overnightAirports.set(leg.destination, destinations);
+                        // overnightAirports.get(leg.destination).push(pair.id);
                     }
                 }
 
@@ -764,7 +904,7 @@ function loadFromDatabase() {
                             query.onsuccess = (event) => {
                                 resolve(event.target.result);
                             }
-        
+
                             query.onerror = (event) => {
                                 console.error("Error retrieving pairings.", event);
                             }
@@ -850,26 +990,75 @@ function deleteDatabase() {
 }
 
 /**
+ * Delete month/year.
+ * @param {Number} year Year of data to be removed, in abbreviated format e.g. 2024 is 24.
+ * @param {Number} month Month of data to be removed, in numerical format.
+ * @return {undefined}
+ */
+function deleteData(year, month) {
+
+    // Show loading
+    toggleLoadingScreen(); 
+
+    // Delete from allPairingsJSON
+    for (let i = 0; i < allPairingsJSON.length; i++) {
+        if (allPairingsJSON[i][0] == monthArray[month] && allPairingsJSON[i][1] == year.toString()) {
+            allPairingsJSON.splice(i, 1);
+            break;
+        }
+    }
+
+    // Update input label and button to blue.
+    monthLabel = month.toString();
+    if (month < 10) monthLabel = "0" + monthLabel;
+    const label = document.getElementById("data-20" + year + "-" + monthLabel).nextSibling;
+    label.innerHTML = monthArray[month].charAt(0) + monthArray[month].substring(1).toLowerCase();
+    label.classList.remove("btn-outline-success");
+    label.classList.add("btn-outline-primary");
+
+    // Update pagination, pairingsJSON, selection table, and database.
+    updatePagination();
+    updateSelectionTable();
+    if (allPairingsJSON.length != 0) {
+        pairingsJSON = allPairingsJSON[0][2];
+        year = "20" + allPairingsJSON[0][1];
+        month = monthArray.indexOf(allPairingsJSON[0][0]);
+        saveToDatabase();
+    } else {
+        pairingsJSON = [];
+        saveToDatabase();
+    }
+
+    buildLegs().then(() => {
+        // Hide loading
+        toggleLoadingScreen();
+    });
+}
+
+/**
  * Clear data stored in localStorage and indexeddb.
  * Reloads map.
  * @return {undefined}
  */
 async function clearAllData() {
 
-    let clearAllDataButton = document.getElementById("clearAllDataButton");
+    const clearAllDataButton = document.getElementById("clearAllDataButton");
 
-    let alert = '<div class="alert alert-success alert-dismissible fade show center-block me-auto ms-auto" role="alert" id="clearDataAlert">' +
+    const alert = '<div class="alert alert-success alert-dismissible fade show center-block me-auto ms-auto" role="alert" id="clearDataAlert">' +
         'All data successfully cleared!' +
         '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
         '</div>';
 
-    let pagination = '<li class="page-item">' +
+    const pagination = '<li class="page-item">' +
         '<a id="upload" type="button" class="page-link" title="Upload" data-bs-toggle="modal" data-bs-target="#uploadModalCenter">' +
         '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i>' +
         '</a></li>' +
         '<li class="page-item">' +
-        '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#unlockModalCenter">' +
+        '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#dataModalCenter">' +
         '<i class="fa-solid fa-key" aria-hidden="true"></i>' +
+        '<span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger badge rounded-pill">' +
+        '<span class="visually-hidden">New</span>' +
+        '</span>' +
         '</a></li>';
 
     // Display loading
@@ -939,8 +1128,36 @@ function curvedPath(latlng1, latlng2, options) {
 }
 
 /**
+ * Creates an arced path.
+ * @param {Number[]} latlng1 Coordinates of the starting point.
+ * @param {Number[]} latlng2 Coordinates of the end point.
+ * @param {Object} options Path options. 
+ * @see {@link https://leafletjs.com/reference.html#path} for path options.
+ * @returns {Promise<L.polyline>} A promise to the L.polyline object.
+ */
+function arcPath(latlng1, latlng2, options) {
+    return new Promise(function (resolve, reject) {
+
+        const start = { x: latlng1[1], y: latlng1[0] };
+        const end = { x: latlng2[1], y: latlng2[0] };
+
+        const generator = new arc.GreatCircle(start, end);
+        const line = generator.Arc(50);
+
+        // Change to lat-lng format.
+        const polyline = line.geometries[0].coords.map((xy, index) => {
+            return [xy[1], xy[0]];
+        });
+
+        const cP = L.polyline(polyline, options);
+        resolve(cP);
+    });
+}
+
+/**
  * Return array of curves from the array of legs.
  * Map of "ORIG-DEST -> {pairings: [Pairinglist], codeshares: ['ua','aa','dl']}"
+ * Map of "ORIG-DEST -> {pairings_out: [Pairinglist], pairings_in: [Pairinglist], codeshares_out: ['ua','aa','dl'], codeshares_in: ['ua','aa','dl']}"
  * @param {Map<String, Object>} legs - Map of legs.
  * @return {Promise<L.curve[]>} Promise to an array of L.curve objects.
  */
@@ -955,24 +1172,46 @@ function getCurves(legs) {
             // Add to destination array.
             if (!routeDestinations.has(legKey.split("-")[1])) {
                 // Ignore base airports.
-                if (!basesIATA.includes(legKey.split("-")[1])) {
-                    // routeDestinations.push(legKey.split("-")[1]);
-                    routeDestinations.set(legKey.split("-")[1], legPairing.pairings)
-                }
+                // if (!basesIATA.includes(legKey.split("-")[1])) {
+                // routeDestinations.push(legKey.split("-")[1]);
+                routeDestinations.set(legKey.split("-")[1], legPairing.pairings_out)
+                // }
             }
             else {
-                if (!basesIATA.includes(legKey.split("-")[1])) {
-                    // Get current pairings.
-                    let mergedArray = routeDestinations.get(legKey.split("-")[1])
-                    // Add new pairings without duplicating.
-                    for (let i = 0; i < legPairing.pairings.length; i++) {
-                        if (!mergedArray.includes(legPairing.pairings[i])) {
-                            mergedArray.push(legPairing.pairings[i])
-                        }
+                // if (!basesIATA.includes(legKey.split("-")[1])) {
+                // Get current pairings.
+                let mergedArray = routeDestinations.get(legKey.split("-")[1])
+                // Add new pairings without duplicating.
+                for (let i = 0; i < legPairing.pairings_out.length; i++) {
+                    if (!mergedArray.includes(legPairing.pairings_out[i])) {
+                        mergedArray.push(legPairing.pairings_out[i])
                     }
-                    // Sort alphabetically and push new array to map.
-                    routeDestinations.set(legKey.split("-")[1], mergedArray.sort())
                 }
+                // Sort alphabetically and push new array to map.
+                routeDestinations.set(legKey.split("-")[1], mergedArray.sort())
+                // }
+            }
+            // Add to destination array.
+            if (!routeDestinations.has(legKey.split("-")[0])) {
+                // Ignore base airports.
+                // if (!basesIATA.includes(legKey.split("-")[0])) {
+                // routeDestinations.push(legKey.split("-")[1]);
+                routeDestinations.set(legKey.split("-")[0], legPairing.pairings_in)
+                // }
+            }
+            else {
+                // if (!basesIATA.includes(legKey.split("-")[0])) {
+                // Get current pairings.
+                let mergedArray = routeDestinations.get(legKey.split("-")[0])
+                // Add new pairings without duplicating.
+                for (let i = 0; i < legPairing.pairings_in.length; i++) {
+                    if (!mergedArray.includes(legPairing.pairings_in[i])) {
+                        mergedArray.push(legPairing.pairings_in[i])
+                    }
+                }
+                // Sort alphabetically and push new array to map.
+                routeDestinations.set(legKey.split("-")[0], mergedArray.sort())
+                // }
             }
 
             let airports = [latlng1, latlng2];
@@ -980,15 +1219,20 @@ function getCurves(legs) {
             Promise.all(airports)
                 .then((coords) => {
                     let lineColor = "black";
-                    if (legPairing.codeshares.length == 1) {
-                        if (legPairing.codeshares[0] == "AA") { lineColor = mapColors.aa };
-                        if (legPairing.codeshares[0] == "DL") { lineColor = mapColors.dl };
-                        if (legPairing.codeshares[0] == "UA") { lineColor = mapColors.ua };
+                    if ((legPairing.codeshares_out.length == 1 && legPairing.codeshares_in.length == 1 && legPairing.codeshares_out[0] == legPairing.codeshares_in[0]) || (legPairing.codeshares_out.length == 1 && legPairing.codeshares_in.length == 0)) {
+                        if (legPairing.codeshares_out[0] == "AA") { lineColor = mapColors.aa };
+                        if (legPairing.codeshares_out[0] == "DL") { lineColor = mapColors.dl };
+                        if (legPairing.codeshares_out[0] == "UA") { lineColor = mapColors.ua };
+                    }
+                    else if (legPairing.codeshares_out.length == 0 && legPairing.codeshares_in.length == 1) {
+                        if (legPairing.codeshares_in[0] == "AA") { lineColor = mapColors.aa };
+                        if (legPairing.codeshares_in[0] == "DL") { lineColor = mapColors.dl };
+                        if (legPairing.codeshares_in[0] == "UA") { lineColor = mapColors.ua };
                     }
                     else {
                         lineColor = mapColors.purple;
                     }
-                    curvePromises.push(curvedPath(coords[0], coords[1], { color: lineColor, weight: '2.0', pairings: legPairing.pairings, route: legKey, codeshares: legPairing.codeshares }));
+                    curvePromises.push(arcPath(coords[0], coords[1], { color: lineColor, weight: '2.5', pairings_out: legPairing.pairings_out, pairings_in: legPairing.pairings_in, route: legKey, codeshares_out: legPairing.codeshares_out, codeshares_in: legPairing.codeshares_in }));
                 })
         });
         resolve(curvePromises);
@@ -1009,7 +1253,7 @@ function displayLines(lines) {
                     routes = layerGroup;
                     routes.addTo(map)
                 })
-                // .then(() => console.log("REFRESHED MAP"));
+            // .then(() => console.log("REFRESHED MAP"));
         });
 }
 
@@ -1022,7 +1266,58 @@ function buildRoutesGroupLayer(lineArr) {
     const routeLayerG = L.layerGroup();
     return new Promise(function (resolve) {
         lineArr.forEach(function (line) {
-            line.bindPopup("<b>" + line.options.route + "</b> (" + line.options.codeshares.map(function (cs) { return cs.toUpperCase(); }).join(", ") + ")</br>" + (line.options.pairings.map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", "));
+            // line.bindPopup("<b>" + line.options.route + "</b> (" + line.options.codeshares.map(function (cs) { return cs.toUpperCase(); }).join(", ") + ")</br>" + (line.options.pairings.map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", "));
+
+            let disabled_out = ' active';
+            let disabled_in = "";
+            let aria_selected_out = 'true';
+            let aria_selected_in = 'false';
+            let show_out = ' active show';
+            let show_in = '';
+            if (line.options.pairings_out.length == 0) {
+                disabled_out = ' disabled';
+                disabled_in = ' active';
+                aria_selected_out = 'false';
+                aria_selected_in = 'true';
+                show_out = '';
+                show_in = ' active show';
+            }
+            if (line.options.pairings_in.length == 0) disabled_in = ' disabled';
+
+            line.bindPopup(
+                '<ul class="nav nav-tabs nav-fill" id="lineTab" role="tablist">' +
+                '<li class="nav-item" role="presentation">' +
+                `<button class="nav-link${disabled_out}" id="outbound-tab" data-bs-toggle="tab" data-bs-target="#outbound-tab-pane" type="button" role="tab" aria-controls="outbound-tab-pane" aria-selected="${aria_selected_out}">` + line.options.route + '</button>' +
+                '</li>' +
+                '<li class="nav-item" role="presentation">' +
+                `<button class="nav-link${disabled_in}" id="inbound-tab" data-bs-toggle="tab" data-bs-target="#inbound-tab-pane" type="button" role="tab" aria-controls="inbound-tab-pane" aria-selected="${aria_selected_in}">` + line.options.route.split("-")[1] + "-" + line.options.route.split("-")[0] + '</button>' +
+                '</li>' +
+                '</ul>' +
+                '<div class="tab-content" id="lineTabContent">' +
+                `<div class="tab-pane card border-top-0 rounded-0 border p-2 overflow-auto fade${show_out}" style="max-height: 200px;min-height:200px;" id="outbound-tab-pane" role="tabpanel" aria-labelledby="outbound-tab" tabindex="0"><p class="fw-light">Codeshares: ` + line.options.codeshares_out.map(function (cs) { return cs.toUpperCase(); }).join(", ") + '</p><p class="fw-normal">' +
+                (line.options.pairings_out.map(pair => `<a class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") + '</p>' +
+                '</div>' +
+                `<div class="tab-pane card border-top-0 rounded-0 border p-2 overflow-auto fade${show_in}" style="max-height: 200px;min-height:200px;" id="inbound-tab-pane" role="tabpanel" aria-labelledby="inbound-tab" tabindex="0"><p class="fw-light">Codeshares: ` + line.options.codeshares_in.map(function (cs) { return cs.toUpperCase(); }).join(", ") + '</p><p class="fw-normal">' +
+                (line.options.pairings_in.map(pair => `<a class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") + '</p>' +
+                '</div>' +
+                '</div>'
+
+                , { minWidth: "300" });
+
+            // Interactive weight increase on hover.
+            line.on('mouseover', function (e) {
+                var layer = e.target;
+                layer.setStyle({
+                    weight: 5.0
+                });
+            });
+            line.on('mouseout', function (e) {
+                var layer = e.target;
+                layer.setStyle({
+                    weight: 2.5
+                });
+            });
+
             routeLayerG.addLayer(line);
         });
         resolve(routeLayerG);
@@ -1048,10 +1343,10 @@ function getAirportLatLon(airportIATA) {
 //  * @returns {Promise<Number[]>} Promise to an array of coordinates.
  * @returns {Promise<Map<String,Number[]>>} Promise to an array of coordinates.
  */
- async function getMarkerLatLons() {
+async function getMarkerLatLons() {
     destinationLatLons = new Map();
-    
-    return new Promise(function(resolve) {
+
+    return new Promise(function (resolve) {
         routeDestinations.forEach(function (pairs, destination) {
             destinationLatLons.set(destination, getAirportLatLon(destination));
         });
@@ -1065,19 +1360,113 @@ function getAirportLatLon(airportIATA) {
  * @return {Promise<L.marker[]>} Promise of destination markers (L.marker).
  */
 function getMarkerLayers(destinationLatLons) {
-    destinationMarkers = [];
+    let destinationMarkers = [];
     destinationLatLons.forEach(function (latlon, destination) {
-        if (filter.overnights && overnightAirports.has(destination)) {
-            destinationMarkers.push(L.marker(latlon, { icon: tealIcon }).bindPopup('<b>' + destination + '</b> (Overnights)<br>' +
-                (overnightAirports.get(destination).map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ")
-            ));
-        }
-        else {
-            // List pairings
-            destinationMarkers.push(L.marker(latlon, { icon: purpleIcon }).bindPopup('<b>' + destination + '</b><br><div style="max-height: 30vh;overflow-y: auto;">' +
-                (routeDestinations.get(destination).map(pair => `<a data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") +
+
+        //TODO: Refactor into a single branch.
+        if (basesIATA.includes(destination)) {
+            let departuresCount = 0;
+            let pairs = routeDestinations.get(destination);
+            for (let i = 0; i < pairs.length; i++) {
+                const pairing = pairingsJSON.find((pair) => pair.id == pairs[i]);
+                for (let j = 0; j < pairing.legs.length; j++) {
+                    if (!pairing.legs[j].deadhead && pairing.legs[j].origin == destination) {
+                        departuresCount = departuresCount + (1 * pairing.days.length);
+                    }
+                }
+            }
+
+            let disabled_overnight = " disabled";
+            let overnightDiv = `<div class="tab-pane card border-top-0 rounded-0 border p-2 fade" id="overnight-tab-pane" role="tabpanel" aria-labelledby="overnight-tab" tabindex="0"><p class="fw-light"></div>`;
+            if (overnightAirports.has(destination)) {
+                if (filter.overnights) {
+                    markerIcon = tealIcon;
+                    markerIconBig = tealIconBig;
+                }
+                disabled_overnight = "";
+                overnightDiv = `<div class="tab-pane card border-top-0 rounded-0 border p-2 fade overflow-auto" style="max-height: 200px;min-height:200px;" id="overnight-tab-pane" role="tabpanel" aria-labelledby="overnight-tab" tabindex="0"><p class="fw-light">` + '<p class="fw-normal">' +
+                    (overnightAirports.get(destination).map(pair => `<a class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") + '</p>' +
+                    '</div>'
+            }
+
+            baseMarkers[basesIATA.indexOf(destination)].bindPopup(
+                '<ul class="nav nav-tabs nav-fill" id="markerTab" role="tablist">' +
+                '<li class="nav-item" role="presentation">' +
+                `<button class="nav-link active" id="airport-tab" data-bs-toggle="tab" data-bs-target="#airport-tab-pane" type="button" role="tab" aria-controls="airport-tab-pane" aria-selected="true">` + destination + '</button>' +
+                '</li>' +
+                '<li class="nav-item" role="presentation">' +
+                `<button class="nav-link" id="overnight-tab" data-bs-toggle="tab" data-bs-target="#overnight-tab-pane" type="button" role="tab" aria-controls="overnight-tab-pane" aria-selected="false">` + 'Overnights</button>' +
+                '</li>' +
+                '</ul>' +
+                '<div class="tab-content" id="lineTabContent">' +
+                `<div class="tab-pane card border-top-0 rounded-0 border p-2 fade active show overflow-auto" style="max-height: 200px;min-height:200px;" id="airport-tab-pane" role="tabpanel" aria-labelledby="airport-tab" tabindex="0"><p class="fw-light">Departures: ${departuresCount}</p>` + '<p class="fw-normal">' +
+                (routeDestinations.get(destination).map(pair => `<a class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") + '</p>' +
+                '</div>' +
+                `${overnightDiv}` +
                 '</div>'
-            ));
+
+                , { minWidth: "300" }
+            );
+
+            baseMarkers[basesIATA.indexOf(destination)].on('mouseover', function (e) {
+                e.target.setIcon(rpaIconBig);
+            });
+            baseMarkers[basesIATA.indexOf(destination)].on('mouseout', function (e) {
+                e.target.setIcon(rpaIcon);
+            });
+        } else {
+            let markerIcon = purpleIcon;
+            let markerIconBig = purpleIconBig;
+            let disabled_overnight = " disabled";
+            let overnightDiv = `<div class="tab-pane card border-top-0 rounded-0 border p-2 fade" id="overnight-tab-pane" role="tabpanel" aria-labelledby="overnight-tab" tabindex="0"><p class="fw-light"></div>`;
+            if (overnightAirports.has(destination)) {
+                if (filter.overnights) {
+                    markerIcon = tealIcon;
+                    markerIconBig = tealIconBig;
+                }
+                disabled_overnight = "";
+                overnightDiv = `<div class="tab-pane card border-top-0 rounded-0 border p-2 fade overflow-auto" style="max-height: 200px;min-height:200px;" id="overnight-tab-pane" role="tabpanel" aria-labelledby="overnight-tab" tabindex="0"><p class="fw-light">` + '<p class="fw-normal">' +
+                    (overnightAirports.get(destination).map(pair => `<a class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") + '</p>' +
+                    '</div>'
+            }
+
+            let departuresCount = 0;
+            let pairs = routeDestinations.get(destination);
+            for (let i = 0; i < pairs.length; i++) {
+                const pairing = pairingsJSON.find((pair) => pair.id == pairs[i]);
+                for (let j = 0; j < pairing.legs.length; j++) {
+                    if (!pairing.legs[j].deadhead && pairing.legs[j].origin == destination) {
+                        departuresCount = departuresCount + (1 * pairing.days.length);
+                    }
+                }
+            }
+
+            let marker = L.marker(latlon, { icon: markerIcon }).bindPopup(
+                '<ul class="nav nav-tabs nav-fill" id="markerTab" role="tablist">' +
+                '<li class="nav-item" role="presentation">' +
+                `<button class="nav-link active" id="airport-tab" data-bs-toggle="tab" data-bs-target="#airport-tab-pane" type="button" role="tab" aria-controls="airport-tab-pane" aria-selected="true">` + destination + '</button>' +
+                '</li>' +
+                '<li class="nav-item" role="presentation">' +
+                `<button class="nav-link${disabled_overnight}" id="overnight-tab" data-bs-toggle="tab" data-bs-target="#overnight-tab-pane" type="button" role="tab" aria-controls="overnight-tab-pane" aria-selected="false">` + 'Overnights</button>' +
+                '</li>' +
+                '</ul>' +
+                '<div class="tab-content" id="lineTabContent">' +
+                `<div class="tab-pane card border-top-0 rounded-0 border p-2 fade active show overflow-auto " style="max-height: 200px;min-height:200px;" id="airport-tab-pane" role="tabpanel" aria-labelledby="airport-tab" tabindex="0"><p class="fw-light">Departures: ${departuresCount}</p>` + '<p class="fw-normal">' +
+                (routeDestinations.get(destination).map(pair => `<a class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" data-filter="${pair}" data-bs-toggle="modal" data-bs-target="#pairingModalCenter" onclick="pairingLinkClick('${pair}')" href=#>${pair}</a>`)).join(", ") + '</p>' +
+                '</div>' +
+                `${overnightDiv}` +
+                '</div>'
+
+                , { minWidth: "300" }
+            );
+
+            marker.on('mouseover', function (e) {
+                e.target.setIcon(markerIconBig);
+            });
+            marker.on('mouseout', function (e) {
+                e.target.setIcon(markerIcon);
+            });
+            destinationMarkers.push(marker);
         }
     });
     return Promise.all(destinationMarkers);
@@ -1354,11 +1743,11 @@ function displayStats(pairings) {
             }
 
             // Ground time.
-            groundCount += timeToHours(leg.grnt)  * multiplier;
+            groundCount += timeToHours(leg.grnt) * multiplier;
 
             // Layover time
             if (leg.layo != "") {
-                for(let i=0; i < multiplier; i++) {
+                for (let i = 0; i < multiplier; i++) {
                     layoverTime.push(parseInt(leg.layo));
                 }
             }
@@ -1419,7 +1808,7 @@ function displayStats(pairings) {
     document.getElementById("stats_avgCreditDay").innerHTML = "Average Credit/Day <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average credit time per day'>" + (creditCount / dayCount).toLocaleString("en-US", { maximumFractionDigits: 2 }) + "</span>";
     document.getElementById("stats_avgLegsDay").innerHTML = "Average Legs/Day <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average number of legs per day'>" + (legCount / dayCount).toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
     document.getElementById("stats_avgGrnt").innerHTML = "Average Ground Time/Day <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average ground time per day'>" + (groundCount / dayCount).toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
-    document.getElementById("stats_avgLayo").innerHTML = "Average Layover Time/Pairing <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average layover time per pairing'>" + String(layoverAvg).slice(0,2) + "." + ((parseInt(String(layoverAvg).slice(2))/60)*100).toLocaleString("en-US", { maximumSignificantDigits: 1 }).slice(0,1) + "</span>";
+    document.getElementById("stats_avgLayo").innerHTML = "Average Layover Time/Pairing <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average layover time per pairing'>" + String(layoverAvg).slice(0, 2) + "." + ((parseInt(String(layoverAvg).slice(2)) / 60) * 100).toLocaleString("en-US", { maximumSignificantDigits: 1 }).slice(0, 1) + "</span>";
 
     document.getElementById("stats_totalDH").innerHTML = "Total Deadhead <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Total deadhead hours'>" + deadheadCount.toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
     document.getElementById("stats_avgDH").innerHTML = "Average Deadhead/Pairing <span class='badge bg-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Average deadhead hours per pairing'>" + (deadheadCount / numPairings).toLocaleString("en-US", { maximumFractionDigits: 1 }) + "</span>";
@@ -1790,7 +2179,7 @@ function textFieldMaxMinCorrect(elem) {
     // Append missing digits if needed.
     if (elem.target.value.length < 5) {
         if (elem.target.value.includes(":")) {
-            if(elem.target.value.indexOf(":") < 2) {
+            if (elem.target.value.indexOf(":") < 2) {
                 if (elem.target.value.length == 1) elem.target.value = "00" + elem.target.value + "00";
                 if (elem.target.value.length == 2) elem.target.value = "0" + elem.target.value + "00";
                 if (elem.target.value.length == 3) elem.target.value = "0" + elem.target.value + "0";
@@ -2120,6 +2509,7 @@ function uploadFiles() {
                     saveToDatabase();
                 }
                 buildLegs();
+                updateSelectionTable();
                 $("#uploadModalCenter").modal("hide");
             }
             else {
@@ -2127,6 +2517,7 @@ function uploadFiles() {
                 uploadButton.disabled = false;
                 if (result.indexOf(true) != -1) {
                     updatePagination();
+                    updateSelectionTable();
                     if (allPairingsJSON.length != 0) {
                         pairingsJSON = allPairingsJSON[0][2];
                         saveToDatabase();
@@ -2266,9 +2657,133 @@ function updatePagination() {
         '</a></li>'
 
     pagination.innerHTML += '<li class="page-item">' +
-    '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#unlockModalCenter">' +
-    '<i class="fa-solid fa-key" aria-hidden="true"></i>' +
-    '</a></li>';
+        '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#dataModalCenter">' +
+        '<i class="fa-solid fa-key" aria-hidden="true"></i>' +
+        '<span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger badge rounded-pill">' +
+        '<span class="visually-hidden">New</span>' +
+        '</span>' +
+        '</a></li>';
+}
+
+/**
+ * Update the selection table to reflect current data.
+ * @return {undefined}
+ */
+function updateSelectionTable() {
+    // Change to green with delete button if it already exists in allpairings.
+    for (let i = 0; i < allPairingsJSON.length; i++) {
+        let year = allPairingsJSON[i][1];
+        let month = monthArray.indexOf(allPairingsJSON[i][0]);
+        if (month < 10) month = "0" + month;
+
+        if (document.getElementById("data-20" + year + "-" + month)) {
+            const label = document.getElementById("data-20" + year + "-" + month).nextSibling;
+            label.innerHTML += '<span class="position-absolute top-0 m-0 p-0" style="top:-1px !important;right:-1px !important;">' +
+                '<button type="button" class="btn btn-danger rounded-0 rounded-end ps-1 pe-1 border-start-0" style="border-color:green;" onclick="deleteData(' + year + "," + month + ')"><i class="bi bi-trash"></i></button>' +
+                '<span class="visually-hidden">delete button</span>' +
+                '</span>';
+            label.classList.remove("btn-outline-primary");
+            label.classList.add("btn-outline-success");
+        }
+        else {
+            // Data is outside of range.
+            console.log("Uploaded data is outside of the defined calendar range.");
+        }
+    }
+
+    // Deselect checkboxes.
+    const inputs = document.getElementById("dataYearTabs").getElementsByTagName("input");
+    for (let i = 0; i < inputs.length; i++) {
+        inputs[i].checked = false;
+    }
+}
+
+/**
+* Generates a table of month/years of data available to download.
+* @param {files:[String, Number]} values JSON of available years and months with file size in MB {files:[]}.
+* @return {undefined}
+*/
+function populateSelectionTable(values) {
+
+    const selectMenu = document.getElementById("dataYear-select");
+    const tabs = document.getElementById("dataYearTabs");
+
+    values.files.forEach((date) => {
+
+        const year = date[0].split("/")[0];
+        const month = date[0].split("/")[1].split("-")[1];
+
+        // Year Select
+        if (document.getElementById("tab-" + year) == null) {
+            selectMenu.innerHTML += '<option class="dropdown-item nav-link" id="tab-' + year + '" data-bs-toggle="tab" data-bs-target="#data-' + year + '" type="button" role="tab" aria-controls="' + year + '" aria-selected="true" value="' + year + '">' + year + '</option>'
+        }
+
+        // Populate Tab
+        if (document.getElementById("data-" + year) == null) {
+            tabs.innerHTML += '<div class="tab-pane fade" id="data-' + year + '" role="tabpanel" aria-labelledby="' + year + '-tab">' +
+                '<div class="container text-center">' +
+                '<div class="row">' +
+                '<div class="col">' +
+                '<input type="checkbox" class="btn-check" id="data-' + year + '-01" autocomplete="off">' +
+                '<label class="btn btn-outline-primary w-100 m-1 position-relative disabled" for="data-' + year + '-01">Jan</label>' +
+                '<input type="checkbox" class="btn-check" id="data-' + year + '-04" autocomplete="off">' +
+                '<label class="btn btn-outline-primary w-100 m-1 position-relative disabled" for="data-' + year + '-04">Apr</label>' +
+                '<input type="checkbox" class="btn-check" id="data-' + year + '-07" autocomplete="off">' +
+                '<label class="btn btn-outline-primary w-100 m-1 position-relative disabled" for="data-' + year + '-07">Jul</label>' +
+                '<input type="checkbox" class="btn-check" id="data-' + year + '-10" autocomplete="off">' +
+                '<label class="btn btn-outline-primary w-100 m-1 position-relative disabled" for="data-' + year + '-10">Oct</label>' +
+                '</div>' +
+                '<div class="col">' +
+                '<input type="checkbox" class="btn-check" id="data-' + year + '-02" autocomplete="off">' +
+                '<label class="btn btn-outline-primary w-100 m-1 position-relative disabled" for="data-' + year + '-02">Feb</label>' +
+                '<input type="checkbox" class="btn-check" id="data-' + year + '-05" autocomplete="off">' +
+                '<label class="btn btn-outline-primary w-100 m-1 position-relative disabled" for="data-' + year + '-05">May</label>' +
+                '<input type="checkbox" class="btn-check" id="data-' + year + '-08" autocomplete="off">' +
+                '<label class="btn btn-outline-primary w-100 m-1 position-relative disabled" for="data-' + year + '-08">Aug</label>' +
+                '<input type="checkbox" class="btn-check" id="data-' + year + '-11" autocomplete="off">' +
+                '<label class="btn btn-outline-primary w-100 m-1 position-relative disabled" for="data-' + year + '-11">Nov</label>' +
+                '</div>' +
+                '<div class="col">' +
+                '<input type="checkbox" class="btn-check" id="data-' + year + '-03" autocomplete="off">' +
+                '<label class="btn btn-outline-primary w-100 m-1 position-relative disabled" for="data-' + year + '-03">Mar</label>' +
+                '<input type="checkbox" class="btn-check" id="data-' + year + '-06" autocomplete="off">' +
+                '<label class="btn btn-outline-primary w-100 m-1 position-relative disabled" for="data-' + year + '-06">Jun</label>' +
+                '<input type="checkbox" class="btn-check" id="data-' + year + '-09" autocomplete="off">' +
+                '<label class="btn btn-outline-primary w-100 m-1 position-relative disabled" for="data-' + year + '-09">Sep</label>' +
+                '<input type="checkbox" class="btn-check" id="data-' + year + '-12" autocomplete="off">' +
+                '<label class="btn btn-outline-primary w-100 m-1 position-relative disabled" for="data-' + year + '-12">Dec</label>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>'
+        }
+
+        // Enable month
+        const inputTag = document.getElementById("data-" + year + "-" + month)
+        const label = inputTag.nextSibling;
+        label.classList.remove("disabled");
+
+        // Set data path attribute
+        inputTag.setAttribute("data-path", date[0]);
+
+        // Set data size attribute
+        inputTag.setAttribute("data-size", date[1]);
+    });
+
+    // Select Option: set selected and active tab.
+    const recentYear = values.files[0][0].split("/")[0];
+    // class active
+    // aria selected true
+    // selected
+    const selectYear = document.getElementById("tab-" + recentYear);
+    selectYear.classList.add("active");
+    selectYear.setAttribute("aria-selected", "true");
+    selectYear.setAttribute("selected", true);
+
+    // show active
+    const dataYear = document.getElementById("data-" + recentYear);
+    dataYear.classList.add("show");
+    dataYear.classList.add("active");
 }
 
 /**
@@ -2276,16 +2791,15 @@ function updatePagination() {
  * @return {undefined}
  */
 function toggleLoadingScreen() {
-    let loadingScreen = document.getElementById("loadingScreen");
-
-    if (loadingScreen.classList.contains("loadingShow")) {
-        document.getElementById("loadingScreen").classList.remove("loadingShow");
-        document.getElementById("loadingScreen").classList.add("loadingHide");
-    }
-    else {
-        document.getElementById("loadingScreen").classList.remove("loadingHide");
-        document.getElementById("loadingScreen").classList.add("loadingShow");
-    }
+        let loadingScreen = document.getElementById("loadingScreen");
+        if (loadingScreen.classList.contains("loadingShow")) {
+            document.getElementById("loadingScreen").classList.remove("loadingShow");
+            document.getElementById("loadingScreen").classList.add("loadingHide");
+        }
+        else {
+            document.getElementById("loadingScreen").classList.remove("loadingHide");
+            document.getElementById("loadingScreen").classList.add("loadingShow");
+        }
 }
 
 /**
@@ -2631,8 +3145,11 @@ L.control.custom({
         '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i>' +
         '</a></li>' +
         '<li class="page-item">' +
-        '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#unlockModalCenter">' +
+        '<a id="unlock" type="button" class="page-link" title="Unlock" data-bs-toggle="modal" data-bs-target="#dataModalCenter">' +
         '<i class="fa-solid fa-key" aria-hidden="true"></i>' +
+        '<span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger badge rounded-pill">' +
+        '<span class="visually-hidden">New</span>' +
+        '</span>' +
         '</a></li>' +
         ' </ul>' +
         ' </nav>' +
