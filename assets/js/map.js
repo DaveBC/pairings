@@ -1081,6 +1081,7 @@ async function clearAllData() {
     deleteDatabase()
         .then(() => {
             toggleLoadingScreen();
+            updateSelectionTable();
             clearAllDataButton.innerHTML = 'Clear All Data';
             document.getElementById("alertPlaceholder").innerHTML = alert;
             allPairingsJSON = [];
