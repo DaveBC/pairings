@@ -5,9 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.2.0] - TBD
-
-### Fixed
+## [1.2.0] - 2025-01-05
 
 ### Changed
 
@@ -20,7 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Mouse-over increases width of route paths.
 - Mouse-over increases size of destination markers.
-- Selective data download. Ability to choose which months to download. Size of data is also shown prior to download. Warning for more than 50mb on non-desktop devices.
+- Selective data download. Ability to choose which months to download. Size of data is also shown prior to download.
+- Selective data removal.
 - Depature count added to destination marker popup.
 - Overnight tab added to destination marker popup. Disabled if there are no overnights.
 
