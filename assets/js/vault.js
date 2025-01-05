@@ -129,7 +129,7 @@ function downloadData() {
 
         // Check allPairings for existing
         if (allPairingsJSON.length < 1) {
-          allPairingsJSON = [plainText];
+          allPairingsJSON = plainText;
         }
         else {
           const ind = allPairingsJSON.findIndex((element) => element[0] == plainText[0][0] && element[1] == plainText[0][1]);

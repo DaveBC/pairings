@@ -471,6 +471,15 @@ function createEventListeners() {
         }
     });
 
+    // If not firefox
+    if(!navigator.userAgent.toLowerCase().includes('firefox')) {
+        document.getElementById("dataYear-select").addEventListener("change", function(e) {
+            var someTabTriggerEl = document.getElementById('tab-' + String(e.target.value));
+            var tab = new bootstrap.Tab(someTabTriggerEl);
+            tab.show();
+        });
+    }
+
 }
 
 /**
