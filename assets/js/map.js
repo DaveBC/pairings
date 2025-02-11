@@ -1053,7 +1053,7 @@ async function clearAllData() {
 
     const clearAllDataButton = document.getElementById("clearAllDataButton");
 
-    const alert = '<div class="alert alert-success alert-dismissible fade show center-block me-auto ms-auto" role="alert" id="clearDataAlert">' +
+    const alert = '<div class="alert alert-success alert-dismissible fade show center-block me-auto ms-auto text-center" role="alert" id="clearDataAlert">' +
         'All data successfully cleared!' +
         '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
         '</div>';

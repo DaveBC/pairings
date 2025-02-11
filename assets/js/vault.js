@@ -194,12 +194,38 @@ function downloadData() {
           prgbar.style.width = 0 + "%";
           prgbar.ariaValueNow = 0;
         });
+    })
+    .catch(function(error) {
+      console.error("Unable to access resource. Error " + error.status + ": " + error.statusText);
+      if(error.status == 403) {
+        // Probably blocked by zscaler.
+        const alert = '<div class="alert alert-danger alert-dismissible fade show center-block me-auto ms-auto text-center" role="alert" id="inaccessibleAlert" style="z-index: 9999;">' +
+        '<i class="fa-solid fa-triangle-exclamation"></i> ' +
+        'Unable to access data due to error 403 (forbidden). Are you using zscaler?' +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+        '</div>';
+        document.getElementById("alertPlaceholder").innerHTML = alert;
+      }
+      else {
+        const alert = '<div class="alert alert-danger alert-dismissible fade show center-block me-auto ms-auto text-center" role="alert" id="failedDownloadAlert" style="z-index: 9999;">' +
+        '<i class="fa-solid fa-triangle-exclamation"></i> ' +
+        'Something went wrong with trying to download data. Error ' + error.status.toString() + ': ' + error.statusText + '.' +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+        '</div>';
+        document.getElementById("alertPlaceholder").innerHTML = alert;
+      }
+      // Reset download tab.
+      downloadButton.disabled = false;
+      downloadButton.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i>';
+      downloadProgress.hidden = true;
+      passphrase.disabled = false;
+      prgbar.style.width = 0 + "%";
+      prgbar.ariaValueNow = 0;
     });
   }
   else {
     // Incorrect passphrase
-    console.log("wrong")
-    const alert = '<div class="alert alert-danger alert-dismissible fade show center-block me-auto ms-auto" role="alert" id="incorrectPassphraseAlert">' +
+    const alert = '<div class="alert alert-danger alert-dismissible fade show center-block me-auto ms-auto text-center" role="alert" id="incorrectPassphraseAlert">' +
       '<i class="fa-solid fa-triangle-exclamation"></i> ' +
       'Incorrect passphrase!' +
       '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
