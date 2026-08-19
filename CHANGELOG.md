@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.2.2] - 2026-08-19
+
+### Fixed
+- Header not matching September 2026 format.
+- Mismatch of airport IATA code for PBI because of the orange man.
+
+### Changed
+- Updated dependencies: Bootstrap 5.3.8, Bootstrap Icons 1.13.1, Font Awesome 7.3.1, pdf.js 6.2.108, jQuery 4.0.0.
+
+### Added
+- Tool for automatically updating rpa_airports.json locally.
+- Error handling for if an airport is not found in the database.
+
+
 ## [1.2.1] - 2025-01-21
 
 ### Changed

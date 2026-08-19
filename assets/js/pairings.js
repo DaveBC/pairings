@@ -5,7 +5,6 @@
 
 /**
  * Pairing Class
- * @see pairings.py
  * @typedef {Object} Pairing
  * @property {String} id - Pairing ID number.
  * @property {String[]} days - Days of the month the pairing runs. 1-31.
@@ -65,7 +64,6 @@ class Pairing {
 
 /**
  * Leg Class
- * @see pairings.py
  * @typedef {Object} Leg
  * @property {String} origin - Origin airport (IATA).
  * @property {String} destination - Destination airport (IATA).
@@ -113,7 +111,6 @@ class Leg {
 
 /**
  * Hotel Class
- * @see pairings.py
  * @typedef {Object} Hotel
  * @property {String} name - Hotel name.
  * @property {String} phone - Hotel phone number.
@@ -148,38 +145,6 @@ const monthsOfTheYear = ['January', 'February', 'March', 'April', 'May', 'June',
     'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
 ];
 
-
-// main();
-
-// test();
-
-// function test() {
-//     getPDFPairings("demo.pdf")
-//         .then((result) => console.log(result));
-// }
-
-// function main() {
-//     let pairings = [];
-
-//     // TODO: Get from file.
-//     let month = "";
-//     let year = "";
-//     let codeshare = "";
-
-//     getPDFText("demo.pdf")
-//         .then((text) => {
-//             let firstLine = text.split("\r\n")[1];
-//             month = firstLine.split(" ")[0].substring(0, 3).toUpperCase();
-//             year = firstLine.split(" ")[1].substring(2, 4);
-//             codeshare = firstLine.split(" ")[3];
-//             return buildPairings(text);
-//         })
-//         .then((res) => parsePairings(res, codeshare))
-//         .then((pairs) => {
-//             return verifyPairings(pairs);
-//         });
-// }
-
 /**
  * Get Pairings from PDF.
  * @async
@@ -196,15 +161,15 @@ async function getPDFPairings(file, fileName) {
     const text = await getPDFText(file, fileName);
 
     // Check first line to see if it is a pairing file.
-    // FORMAT: Month Year Pilot AA/DL/UA Pairings
-    if (text.split(/\r?\n|\r|\n/g)[0].search(/^(January|February|March|April|May|June|July|August|September|October|November|December|Ocotber|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER) (20)(\d{2}) (Pilot |PILOT )?(AA|DL|UA) (?:Pairings|PAIRINGS) .*$/) == -1) {
+    // FORMAT: Month Year Pilot AA/DL/UA Pairings OR Month Year AA/DL/UA Pilot Pairings
+    if (text.split(/\r?\n|\r|\n/g)[0].search(/^(January|February|March|April|May|June|July|August|September|October|November|December|Ocotber|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER) (20)(\d{2}) ((Pilot |PILOT )?(AA|DL|UA))|((AA|DL|UA)(Pilot |PILOT )?) (?:Pairings|PAIRINGS) .*$/) == -1) {
         // Incorrect file format.
         let progressBar = document.getElementById(fileName).children[0].children[0];
         progressBar.style.width = "100%";
         progressBar.ariaValueNow = "100";
-        progressBar.innerText = "Error parsing PDF file: Format not as expected.";
+        progressBar.innerText = "Error parsing PDF file: Format not as expected. Check console for more information.";
         progressBar.classList.add("bg-danger")
-        console.error("[ERROR] Error parsing file. Format not as expected.");
+        console.error("[ERROR] Error parsing file. Header format not as expected. Expected format: MONTH YEAR Pilot AA/DL/UA Pairings OR MONTH YEAR AA/DL/UA Pilot Pairings.\n[ERROR] Header found: " + text.split(/\r?\n|\r|\n/g)[0] + "");
         return [];
     }
 
@@ -272,7 +237,7 @@ async function getPDFText(file, fileName) {
     // The workerSrc property shall be specified.
     //
     pdfjsLib.GlobalWorkerOptions.workerSrc =
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.2.108/pdf.worker.min.mjs';
 
     //
     // Asynchronous download PDF

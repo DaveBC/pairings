@@ -327,6 +327,12 @@ let overnightAirports = new Map();
  */
 let destinationMarkerGroup = L.layerGroup();
 
+/**
+ * Error counter.
+ * @type {Number}
+ */
+let signal = 0;
+
 //  =======================================================================================
 //  Functions: Pairing Handling
 //  =======================================================================================
@@ -501,7 +507,56 @@ async function buildLegs() {
         .then(() => getMarkerLatLons())
         .then((destinationLatLons) => getMarkerLayers(destinationLatLons))
         .then((destinationMarkers) => getDestinationMarkerGroup(destinationMarkers))
-        .then((markerGroup) => displayDestinationMarkers(markerGroup));
+        .then((markerGroup) => displayDestinationMarkers(markerGroup))
+        .then(() => refreshSuccess())
+    .catch(error => { 
+        if(error.name = "AirportNotFound") {
+            if(signal == 0) {
+                signal += 1;
+                // Show banner
+                const alert = '<div class="alert alert-danger alert-dismissible fade show center-block me-auto ms-auto text-center" style="z-index: 1056" role="alert" id="airportNotFoundAlert">' +
+                                'An Airport was not found in the database. Attempting a refresh.' +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                                '</div>';
+                document.getElementById("alertPlaceholder").innerHTML = alert;
+                // Clear storage
+                localStorage.removeItem("airportJSON");
+                toggleLoadingScreen();
+                let airports = "/assets/js/airports_rpa.json"
+                // Call main to start again.
+                fetch(airports) // Get JSON from file.
+                .then((fetched) => {
+                    fetched.json() // Get PDF Pairings and build json object.
+                        .then((jsonObject) => {
+                            localStorage['airportJSON'] = JSON.stringify(jsonObject);
+                            airportJSON = jsonObject; // Put into global variables.
+                        })
+                        .then(() => buildLegs()) // Populate map.
+                        .then(() => toggleLoadingScreen());
+                });
+            }
+            else {
+                // Too many attempts.
+                console.error("[ERROR] Too many database refresh attempts.")
+                const alert = '<div class="alert alert-danger alert-dismissible fade show center-block me-auto ms-auto text-center" style="z-index: 1056" role="alert" id="airportNotFoundAlert">' +
+                                'An Airport was not found in the database. Refreshing the airport database did not fix the problem. See the console for more information.' +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                                '</div>';
+                document.getElementById("alertPlaceholder").innerHTML = alert;
+            }
+        }
+        else {
+            // Generic error.
+            console.error("[ERROR] Something has gone wrong.");
+            console.error(error);
+
+            const alert = '<div class="alert alert-danger alert-dismissible fade show center-block me-auto ms-auto text-center" style="z-index: 1056" role="alert" id="airportNotFoundAlert">' +
+                            'Something has gone wrong. See the console for more information.' +
+                            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                            '</div>';
+            document.getElementById("alertPlaceholder").innerHTML = alert;
+        }
+    })
 }
 
 /**
@@ -1093,6 +1148,21 @@ async function clearAllData() {
         });
 }
 
+/**
+ * Pushes an alert to the user if a refresh was successfull.
+ * @return {undefined}
+ */
+function refreshSuccess() {
+    if(signal > 0) {
+        signal = 0;
+        const alert = '<div class="alert alert-success alert-dismissible fade show center-block me-auto ms-auto text-center" style="z-index: 1056" role="alert" id="airportNotFoundAlert">' +
+                                    'Successfully refreshed the airport database!' +
+                                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                                    '</div>';
+        document.getElementById("alertPlaceholder").innerHTML = alert;
+    }
+}
+
 //  =======================================================================================
 //  Functions: Leaflet
 //  =======================================================================================
@@ -1147,7 +1217,6 @@ function curvedPath(latlng1, latlng2, options) {
  */
 function arcPath(latlng1, latlng2, options) {
     return new Promise(function (resolve, reject) {
-
         const start = { x: latlng1[1], y: latlng1[0] };
         const end = { x: latlng2[1], y: latlng2[0] };
 
@@ -1173,79 +1242,83 @@ function arcPath(latlng1, latlng2, options) {
  */
 function getCurves(legs) {
     const curvePromises = [];
-    return new Promise(function (resolve) {
-        legs.forEach(function (legPairing, legKey) {
+    return new Promise(function (resolve,reject) {
+        try {
+            legs.forEach(function (legPairing, legKey) {
 
-            let latlng1 = getAirportLatLon(legKey.split("-")[0]);
-            let latlng2 = getAirportLatLon(legKey.split("-")[1]);
+                let latlng1 = getAirportLatLon(legKey.split("-")[0]);
+                let latlng2 = getAirportLatLon(legKey.split("-")[1]);
 
-            // Add to destination array.
-            if (!routeDestinations.has(legKey.split("-")[1])) {
-                // Ignore base airports.
-                // if (!basesIATA.includes(legKey.split("-")[1])) {
-                // routeDestinations.push(legKey.split("-")[1]);
-                routeDestinations.set(legKey.split("-")[1], legPairing.pairings_out)
-                // }
-            }
-            else {
-                // if (!basesIATA.includes(legKey.split("-")[1])) {
-                // Get current pairings.
-                let mergedArray = routeDestinations.get(legKey.split("-")[1])
-                // Add new pairings without duplicating.
-                for (let i = 0; i < legPairing.pairings_out.length; i++) {
-                    if (!mergedArray.includes(legPairing.pairings_out[i])) {
-                        mergedArray.push(legPairing.pairings_out[i])
-                    }
+                // Add to destination array.
+                if (!routeDestinations.has(legKey.split("-")[1])) {
+                    // Ignore base airports.
+                    // if (!basesIATA.includes(legKey.split("-")[1])) {
+                    // routeDestinations.push(legKey.split("-")[1]);
+                    routeDestinations.set(legKey.split("-")[1], legPairing.pairings_out)
+                    // }
                 }
-                // Sort alphabetically and push new array to map.
-                routeDestinations.set(legKey.split("-")[1], mergedArray.sort())
-                // }
-            }
-            // Add to destination array.
-            if (!routeDestinations.has(legKey.split("-")[0])) {
-                // Ignore base airports.
-                // if (!basesIATA.includes(legKey.split("-")[0])) {
-                // routeDestinations.push(legKey.split("-")[1]);
-                routeDestinations.set(legKey.split("-")[0], legPairing.pairings_in)
-                // }
-            }
-            else {
-                // if (!basesIATA.includes(legKey.split("-")[0])) {
-                // Get current pairings.
-                let mergedArray = routeDestinations.get(legKey.split("-")[0])
-                // Add new pairings without duplicating.
-                for (let i = 0; i < legPairing.pairings_in.length; i++) {
-                    if (!mergedArray.includes(legPairing.pairings_in[i])) {
-                        mergedArray.push(legPairing.pairings_in[i])
+                else {
+                    // if (!basesIATA.includes(legKey.split("-")[1])) {
+                    // Get current pairings.
+                    let mergedArray = routeDestinations.get(legKey.split("-")[1])
+                    // Add new pairings without duplicating.
+                    for (let i = 0; i < legPairing.pairings_out.length; i++) {
+                        if (!mergedArray.includes(legPairing.pairings_out[i])) {
+                            mergedArray.push(legPairing.pairings_out[i])
+                        }
                     }
+                    // Sort alphabetically and push new array to map.
+                    routeDestinations.set(legKey.split("-")[1], mergedArray.sort())
+                    // }
                 }
-                // Sort alphabetically and push new array to map.
-                routeDestinations.set(legKey.split("-")[0], mergedArray.sort())
-                // }
-            }
+                // Add to destination array.
+                if (!routeDestinations.has(legKey.split("-")[0])) {
+                    // Ignore base airports.
+                    // if (!basesIATA.includes(legKey.split("-")[0])) {
+                    // routeDestinations.push(legKey.split("-")[1]);
+                    routeDestinations.set(legKey.split("-")[0], legPairing.pairings_in)
+                    // }
+                }
+                else {
+                    // if (!basesIATA.includes(legKey.split("-")[0])) {
+                    // Get current pairings.
+                    let mergedArray = routeDestinations.get(legKey.split("-")[0])
+                    // Add new pairings without duplicating.
+                    for (let i = 0; i < legPairing.pairings_in.length; i++) {
+                        if (!mergedArray.includes(legPairing.pairings_in[i])) {
+                            mergedArray.push(legPairing.pairings_in[i])
+                        }
+                    }
+                    // Sort alphabetically and push new array to map.
+                    routeDestinations.set(legKey.split("-")[0], mergedArray.sort())
+                    // }
+                }
 
-            let airports = [latlng1, latlng2];
+                let airports = [latlng1, latlng2];
 
-            Promise.all(airports)
-                .then((coords) => {
-                    let lineColor = "black";
-                    if ((legPairing.codeshares_out.length == 1 && legPairing.codeshares_in.length == 1 && legPairing.codeshares_out[0] == legPairing.codeshares_in[0]) || (legPairing.codeshares_out.length == 1 && legPairing.codeshares_in.length == 0)) {
-                        if (legPairing.codeshares_out[0] == "AA") { lineColor = mapColors.aa };
-                        if (legPairing.codeshares_out[0] == "DL") { lineColor = mapColors.dl };
-                        if (legPairing.codeshares_out[0] == "UA") { lineColor = mapColors.ua };
-                    }
-                    else if (legPairing.codeshares_out.length == 0 && legPairing.codeshares_in.length == 1) {
-                        if (legPairing.codeshares_in[0] == "AA") { lineColor = mapColors.aa };
-                        if (legPairing.codeshares_in[0] == "DL") { lineColor = mapColors.dl };
-                        if (legPairing.codeshares_in[0] == "UA") { lineColor = mapColors.ua };
-                    }
-                    else {
-                        lineColor = mapColors.purple;
-                    }
-                    curvePromises.push(arcPath(coords[0], coords[1], { color: lineColor, weight: '2.5', pairings_out: legPairing.pairings_out, pairings_in: legPairing.pairings_in, route: legKey, codeshares_out: legPairing.codeshares_out, codeshares_in: legPairing.codeshares_in }));
-                })
-        });
-        resolve(curvePromises);
+                Promise.all(airports)
+                    .then((coords) => {
+                        let lineColor = "black";
+                        if ((legPairing.codeshares_out.length == 1 && legPairing.codeshares_in.length == 1 && legPairing.codeshares_out[0] == legPairing.codeshares_in[0]) || (legPairing.codeshares_out.length == 1 && legPairing.codeshares_in.length == 0)) {
+                            if (legPairing.codeshares_out[0] == "AA") { lineColor = mapColors.aa };
+                            if (legPairing.codeshares_out[0] == "DL") { lineColor = mapColors.dl };
+                            if (legPairing.codeshares_out[0] == "UA") { lineColor = mapColors.ua };
+                        }
+                        else if (legPairing.codeshares_out.length == 0 && legPairing.codeshares_in.length == 1) {
+                            if (legPairing.codeshares_in[0] == "AA") { lineColor = mapColors.aa };
+                            if (legPairing.codeshares_in[0] == "DL") { lineColor = mapColors.dl };
+                            if (legPairing.codeshares_in[0] == "UA") { lineColor = mapColors.ua };
+                        }
+                        else {
+                            lineColor = mapColors.purple;
+                        }
+                        curvePromises.push(arcPath(coords[0], coords[1], { color: lineColor, weight: '2.5', pairings_out: legPairing.pairings_out, pairings_in: legPairing.pairings_in, route: legKey, codeshares_out: legPairing.codeshares_out, codeshares_in: legPairing.codeshares_in }));
+                    })
+            });
+            resolve(curvePromises);
+        } catch(error) {
+            reject(error);
+        }
     });
 }
 
@@ -1345,6 +1418,14 @@ function getAirportLatLon(airportIATA) {
             return [airportJSON[key].lat, airportJSON[key].lon];
         }
     }
+
+    // Key not found. Try a airport json refresh.
+    console.error("[ERROR] Airport IATA code " + airportIATA + " not found in database.");
+    console.info("[INFO] Attempting a database refresh, followed by a restart.");
+    
+    const error = new Error("Airport IATA not found in airport database.");
+    error.name = "AirportNotFound"; 
+    throw error;
 }
 
 /**
@@ -2516,6 +2597,7 @@ function uploadFiles() {
                     pairingsJSON = allPairingsJSON[0][2];
                     year = "20" + allPairingsJSON[0][1];
                     month = monthArray.indexOf(allPairingsJSON[0][0]);
+                    // update values.
                     saveToDatabase();
                 }
                 buildLegs();
@@ -2698,6 +2780,7 @@ function updateSelectionTable() {
         else {
             // Data is outside of range.
             console.log("Uploaded data is outside of the defined calendar range.");
+            // TODO: Add range (new year).
         }
     }
 
