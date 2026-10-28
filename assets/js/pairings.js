@@ -162,7 +162,7 @@ async function getPDFPairings(file, fileName) {
 
     // Check first line to see if it is a pairing file.
     // FORMAT: Month Year Pilot AA/DL/UA Pairings OR Month Year AA/DL/UA Pilot Pairings
-    if (text.split(/\r?\n|\r|\n/g)[0].search(/^(January|February|March|April|May|June|July|August|September|October|November|December|Ocotber|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER) (20)(\d{2}) ((Pilot |PILOT )?(AA|DL|UA))|((AA|DL|UA)(Pilot |PILOT )?) (?:Pairings|PAIRINGS) .*$/) == -1) {
+    if (text.split(/\r?\n|\r|\n/g)[0].search(/^(January|February|March|April|May|June|July|August|September|October|November|December|Ocotber|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER) (20)(\d{2}) ((Pilot |PILOT )?(AA|DL|UA|ALL))|((AA|DL|UA)(Pilot |PILOT )?) (?:Pairings|PAIRINGS) .*$/) == -1) {
         // Incorrect file format.
         let progressBar = document.getElementById(fileName).children[0].children[0];
         progressBar.style.width = "100%";
@@ -181,8 +181,38 @@ async function getPDFPairings(file, fileName) {
     if (firstLine.split(" ")[2] != "Pilot" && firstLine.split(" ")[2] != "PILOT") codeshare = firstLine.split(" ")[2];
 
     const builtPairings = await buildPairings(text);
-    const parsedPairings = await parsePairings(builtPairings, codeshare);
-    pairings = parsedPairings;
+
+    // If all pairings, group into codeshares.
+    if (codeshare == "ALL") {
+        let pairings_aa = [];
+        let pairings_dl = [];
+        let pairings_ua = [];
+
+        // Group pairings into codeshares, by the first digit of the flight number.
+        builtPairings.forEach(pairing => {
+            loopPairings: for (const line of pairing) {
+                const result = line.match(/^([0-9]|MO|TU|WE|TH|FR|SA|SU) ([0-9]{1})[0-9]{3}.*/);
+                if(result) {
+                    switch (result[2]) {
+                        case "3" : pairings_ua.push(pairing);
+                                    break loopPairings;
+                        case "4" : pairings_aa.push(pairing);
+                                    break loopPairings;
+                        case "5" : pairings_dl.push(pairing);
+                                    break loopPairings;
+                        default : console.error("No matching codeshare found for pairing.");
+                            console.error(pairing);
+                    }
+                }
+            }
+        })
+        const [aa_parsedPairings, dl_parsedPairings, ua_parsedPairings] = await Promise.all([parsePairings(pairings_aa, "AA"), parsePairings(pairings_dl, "DL"), parsePairings(pairings_ua, "UA")]);
+        pairings = [...aa_parsedPairings, ...dl_parsedPairings, ...ua_parsedPairings];
+    }
+    else {
+        const parsedPairings = await parsePairings(builtPairings, codeshare);
+        pairings = parsedPairings;
+    }
 
     return ([month, year, pairings]);
 
